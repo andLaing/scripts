@@ -7,6 +7,18 @@ import matplotlib.pyplot as plt
 
 import invisible_cities.core.fit_functions as fitf
 
+"""
+run as:
+python pmtCalFit.py <input file name> <function name: ngau, intgau, dfunc, conv> opt: <minimum stats per bin to set fit limits> <number of sigmas for bound on pedestal parameters>
+
+function name meanings:
+ngau : 7 gaussians fitted, can be changed adding line respF.nGau = x
+intgau : Gaussians until integral < min_integ=100, can be changed adding line respF.min_integ = x
+dfunc : scaled dark spectrum + Gaussians up to integ < 100
+conv : expicit convolution of dark spectrum with Gaussians up to integ < 100
+
+"""
+
 ## this should probably be somehwere useful if it doesn't already exist
 def weighted_av_std(values, weights):
 
@@ -33,12 +45,12 @@ def seeds_and_bounds(func, bins, spec, ped_vals, ped_errs, lim_ped):
     ped_seed = ped_vals[1]
     ped_min  = ped_seed - lim_ped * ped_errs[1]
     ped_max  = ped_seed + lim_ped * ped_errs[1]
-    print('ped check: ', ped_seed, ped_min, ped_max)
+    #print('ped check: ', ped_seed, ped_min, ped_max)
 
     ped_sig_seed = ped_vals[2]
     ped_sig_min  = max(0.001, ped_sig_seed - lim_ped * ped_errs[2])
     ped_sig_max  = ped_sig_seed + lim_ped * ped_errs[2]
-    print('rms check: ', ped_sig_seed, ped_sig_min, ped_sig_max)
+    #print('rms check: ', ped_sig_seed, ped_sig_min, ped_sig_max)
 
     ## Remove the ped prediction and check try to get seeds for 1pe
     # first scale the dark pedestal
@@ -50,21 +62,21 @@ def seeds_and_bounds(func, bins, spec, ped_vals, ped_errs, lim_ped):
     ## Now fit a Gaussian
     fgaus = fitf.fit(fitf.gauss, bins[p1pe-10:p1pe+10], l_subtract_d[p1pe-10:p1pe+10],
                      (l_subtract_d[p1pe-10:p1pe+10].max(), bins[p1pe], 7), sigma=np.sqrt(l_subtract_d[p1pe-10:p1pe+10]))
-    print('1pe fit check: ', fgaus.values, fgaus.errors)
+    #print('1pe fit check: ', fgaus.values, fgaus.errors)
     ## Test scale
     ftest = fitf.fit(scaler, bins[bins<0], spec[bins<0], (dscale))
-    print('ftest par = ', ftest.values[0], -np.log(ftest.values[0]))
+    #print('ftest par = ', ftest.values[0], -np.log(ftest.values[0]))
 
     if 'gau' in func:
         # There are 6 variables: normalization, pedestal pos., spe mean, poisson mean, pedestal sigma, 1pe sigma
         sd0 = (norm_seed, ped_seed, fgaus.values[1]-ped_vals[1], -np.log(ftest.values[0]), ped_sig_seed, np.sqrt(fgaus.values[2]**2 - ped_vals[2]**2))
         bd0 = [(0, ped_min, 0, 0, ped_sig_min, 0.001), (1e99, ped_max, 10000, 10000, ped_sig_max, 10000)]
-        print('Seed check: ', sd0)
+        #print('Seed check: ', sd0)
         return sd0, bd0
     ## The other functions only have four parameters: normalization, spe mean, poisson mean, 1pe sigma
     sd0 = (norm_seed, fgaus.values[1]-ped_vals[1], -np.log(ftest.values[0]), np.sqrt(fgaus.values[2]**2 - ped_vals[2]**2))
     bd0 = [(0, 0, 0, 0.001), (1e99, 10000, 10000, 10000)]
-    print('Seed check: ', sd0)
+    #print('Seed check: ', sd0)
     return sd0, bd0
     
 
@@ -106,7 +118,7 @@ def main():
 
         ## Scale just in case we lost a different amount of integrals in dark and led
         scale = lspec.sum() / dspec.sum()
-        print('Scale check: ', scale)
+        #print('Scale check: ', scale)
         respF.set_dark_func(dspec[b1:b2], cent=gfitRes.values[1], sig=gfitRes.values[2], scale=scale)
         respF.redefine_bins(bins[b1:b2])
 
@@ -135,6 +147,7 @@ def main():
         plt.ylabel('AU')
         print('Fit values: ', rfit.values)
         print('Fit errors: ', rfit.errors)
+        print('Number of Gaussians: ', respF.nGau)
         print('Fit chi2: ', rfit.chi2)
         plt.show(block=False)
         next_plot = input('press enter to move to next fit')
