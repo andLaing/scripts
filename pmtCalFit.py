@@ -98,7 +98,15 @@ def main():
 
     respF = fitf.SensorSpeResponse(bins)
     ffuncs = {'ngau':respF.set_gaussians, 'intgau':respF.min_integ_gaussians, 'dfunc': respF.scaled_dark_pedestal, 'conv':respF.dark_convolution}
+    pOrders = {'ngau':'norm err ped err gain err poismu err pedSig err 1peSig err', 'intgau':'norm err ped err gain err poismu err pedSig err 1peSig err', 'dfunc':'norm err gain err poismu err 1peSig err', 'conv':'norm err gain err poismu err 1peSig err'}
 
+    pOut = open('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.dat', 'w')
+    pOut.write('InputFile: '+fileName+'\n')
+    pOut.write('FuncName: '+funcName+'\n')
+    pOut.write('Minimum stats: '+str(min_stat)+'\n')
+    pOut.write('Pedestal nsig limits: +/-'+str(limit_ped)+'\n')
+    pOut.write('\n \n')
+    pOut.write('Parameter order: '+pOrders[funcName]+'\n')
     for i, (dspec, lspec) in enumerate(zip(specsD, specsL)):
 
         b1 = 0
@@ -145,14 +153,18 @@ def main():
         plt.title('Spe response fit to channel')
         plt.xlabel('ADC')
         plt.ylabel('AU')
+        print('Sensor index: ', i)
         print('Fit values: ', rfit.values)
         print('Fit errors: ', rfit.errors)
         print('Number of Gaussians: ', respF.nGau)
         print('Fit chi2: ', rfit.chi2)
+        pOut.write('Indx: '+str(i)+', params: '+str(np.vstack((rfit.values, rfit.errors)).reshape((-1,), order='F'))+', ngaus = '+str(respF.nGau)+', chi2 = '+str(rfit.chi2)+'\n')
         plt.show(block=False)
         next_plot = input('press enter to move to next fit')
         plt.clf()
         plt.close()
+
+    pOut.close()
 
     
 if __name__ == '__main__':
