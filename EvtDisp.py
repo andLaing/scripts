@@ -6,16 +6,22 @@ import matplotlib.pyplot as plt
 import tables as tb
 
 
-grp1 = [ 1, 4, 5, 8, 9 ]
-grp2 = [ 18, 19, 22, 23, 30, 31 ]
+#grp1 = [ 1, 4, 5, 8, 9 ]
+#grp2 = [ 18, 19, 22, 23, 30, 31 ]
+#grp1 = [ 0, 1, 4, 5, 6, 7 ]
+#grp2 = [ 12, 13, 16, 17, 18, 19 ]
+grp1 = [ 0, 1, 12, 13, 16, 17 ]
+grp2 = [ 6, 7, 18, 19 ]
+grp3 = [ 4, 5 ]
 
 def main():
 
     """ Display pmt waveforms (filtered if required) and FFTs """
 
-    runNo = sys.argv[1]
-    fileNo = sys.argv[2]
-    fName = 'hdf5/'+runNo+'/dst_waves.gdcsnext.'+fileNo.zfill(3)+'_'+runNo+'.root.h5'
+    #runNo = sys.argv[1]
+    #fileNo = sys.argv[2]
+    #fName = 'hdf5/'+runNo+'/dst_waves.gdcsnext.'+fileNo.zfill(3)+'_'+runNo+'.root.h5'
+    fName = sys.argv[1]
 
     ## Filter definition
     fSample = 40E6
@@ -40,6 +46,7 @@ def main():
 
             grp1Setter = False
             grp2Setter = False
+            grp3Setter = False
             for ipm in range(npm):
 
                 rwf = dataF.root.RD.pmtrwf[ievt][ipm]
@@ -61,23 +68,25 @@ def main():
                     ftAbsSave = ft_mag
                 elif not grp2Setter and pmID in grp2:
                     ftAbsSave2 = ft_mag
+                elif not grp3Setter and pmID in grp3:
+                    ftAbsSave3 = ft_mag
 
                 if pmID in grp1:
                     axes[0][0].plot(fwf)
                     axes[1][1].plot(freq, ft_mag, label='pmt '+str(pmID))
                     #print([ x for x in np.select([ft_mag>=4000],[freq]) if x != 0.])
                     print('Mags: ', pmID, [ (x, y) for (x, y) in zip(freq, ft_mag) if x >= 15000 and x < 25000 ])
-                    axes[2][1].plot(freq, ft_mag/ftAbsSave)
+                    #axes[2][1].plot(freq, ft_mag/ftAbsSave)
                     if not grp1Setter:
                         axes[0][0].set_title('Group 1 filtered waveforms')
                         axes[1][1].set_title('Group 1 filtered FFT magnitudes')
                         axes[1][1].set_xlim(500, 25000)
-                        axes[2][1].set_title('Group 1 filtered FFT magnitudes normalised')
-                        axes[2][1].set_xlim(500, 25000)
-                        axes[2][1].set_ylim(0, 2)
+                        #axes[2][1].set_title('Group 1 filtered FFT magnitudes normalised')
+                        #axes[2][1].set_xlim(500, 25000)
+                        #axes[2][1].set_ylim(0, 2)
                         grp1Setter = True
-                    else:
-                        print(pmID, [ x for (x, y) in zip(freq, ft_mag/ftAbsSave) if x > 4000 and x < 10000 and y >= 0.9 and y <= 1.1])
+                    #else:
+                        #print(pmID, [ x for (x, y) in zip(freq, ft_mag/ftAbsSave) if x > 4000 and x < 10000 and y >= 0.9 and y <= 1.1])
                 elif pmID in grp2:
                     axes[0][1].plot(fwf)
                     axes[2][0].plot(freq, ft_mag, label='pmt '+str(pmID))
@@ -87,13 +96,20 @@ def main():
                         axes[2][0].set_title('Group 2 filtered FFT magnitudes')
                         axes[2][0].set_xlim(500, 25000)
                         grp2Setter = True
-                    else:
-                        print(pmID, [ x for (x, y) in zip(freq, ft_mag/ftAbsSave2) if x > 500 and x < 10000 and y >= 0.9 and y <= 1.1])
-
-                if pmID == grp1[0] or pmID == grp2[0]:
+                    #else:
+                        #print(pmID, [ x for (x, y) in zip(freq, ft_mag/ftAbsSave2) if x > 500 and x < 10000 and y >= 0.9 and y <= 1.1])
+                elif pmID in grp3:
                     axes[1][0].plot(fwf)
-                    if pmID == grp1[0]:
-                        axes[1][0].set_title('WF from each group')
+                    axes[2][1].plot(freq, ft_mag, label='pmt '+str(pmID))
+                    if not grp3Setter:
+                        axes[1][0].set_title('Group 3 filtered waveforms')
+                        axes[2][1].set_title('Group 3 filtered FFT magnitudes')
+                        axes[2][1].set_xlim(500, 25000)
+                        grp2Setter = True
+                #if pmID == grp1[0] or pmID == grp2[0]:
+                    #axes[1][0].plot(fwf)
+                    #if pmID == grp1[0]:
+                     #   axes[1][0].set_title('WF from each group')
 
             plt.tight_layout()
             plt.draw()

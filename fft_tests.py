@@ -13,10 +13,11 @@ from glob import iglob
 
 #pms = [ 0, 1, 4 ,5, 8, 9, 18, 19, 22, 23, 26, 27 ]
 #fis_id = [ 1, 2, 5, 6, 9, 'A', 3, 4, 7, 8, 'B', 'C' ]
-pms = [ 1, 4, 5, 8, 9, 18, 19, 22, 23, 30, 31 ]
-fis_id = [ 8, 9, 'A', 'B', 'C', 1, 2, 3, 4, 5, 6 ]
-grp1 = [ 1, 4, 5, 8, 9 ]
-grp2 = [ 18, 19, 22, 23, 30, 31 ]
+#pms = [ 1, 4, 5, 8, 9, 18, 19, 22, 23, 30, 31 ]
+#fis_id = [ 8, 9, 'A', 'B', 'C', 1, 2, 3, 4, 5, 6 ]
+fis_id = {0:1, 1:2, 12:3, 13:4, 16:7, 17:8, 6:9, 7:'A', 18:'B', 19:'C', 4:5, 5:6}
+grp1 = [ 0, 1, 12, 13, 6, 7, 4, 5 ]
+grp2 = [ 16, 17, 18, 19 ]
 
 #testFREQ = [ 5625., 8437.5, 15625., 16250., 17500., 17812.5, 18125., 18437.5, 18750., 19062.5, 21250., 21875. ]
 ## testFREQ = [ 5937.5, 7812.5, 15625., 16250., 17500., 17812.5, 18125., 18437.5, 18750., 19062.5, 21250., 21875. ]
@@ -26,13 +27,17 @@ testFREQ = [ x*312.5 for x in range(1, 80)]
 def main():
     """Using Vicente's script with some additions to study
     evolution of oscillation in pmt baselines"""
-    print(testFREQ)
+    #print(testFREQ)
     nevt = 100
 
-    max_freq = np.zeros( (len(pms), nevt), dtype=np.float64 )
-    max_mag = np.zeros( (len(pms), nevt), dtype=np.float64 )
-    sign_freqs = [ [] for i in pms ]
-    n_frqs = np.zeros( (len(pms), nevt), dtype=np.float64 )
+    #max_freq = np.zeros( (len(pms), nevt), dtype=np.float64 )
+    #max_mag = np.zeros( (len(pms), nevt), dtype=np.float64 )
+    #sign_freqs = [ [] for i in pms ]
+    #n_frqs = np.zeros( (len(pms), nevt), dtype=np.float64 )
+    max_freq = np.zeros( (12, nevt), dtype=np.float64 )
+    max_mag = np.zeros( (12, nevt), dtype=np.float64 )
+    sign_freqs = [ [] for i in range(12) ]
+    n_frqs = np.zeros( (12, nevt), dtype=np.float64 )
     ##
     ## Filter definition
     fSample = 40E6
@@ -43,7 +48,8 @@ def main():
 
     filtering = True
     defsDone = False
-    indxs = []
+    #indxs = np.array()
+    pms = []
     bigFreqs = []
     ## MONITORING
     MAGS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ] }
@@ -53,15 +59,17 @@ def main():
     cEvt = 0
     testWF = np.empty(1)
     testFill = False
-    for fN in iglob(sys.argv[1]+'*.h5'):
+    for fN in iglob(sys.argv[1]+'*_waveforms.h5'):
         with load_input(fN) as file0:
             if not defsDone:
-                 wf_len = get_wf_len(file0)
-                 meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in pms ]
-                 frq_plot = np.empty(int(wf_len/2+1))
-                 defsDone = True
+                wf_len = get_wf_len(file0)
+                #meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in pms ]
+                meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in range(12)]
+                frq_plot = np.empty(int(wf_len/2+1))
+                pms = np.fromiter((file0.root.Sensors.DataPMT[i][0] for i in range(len(file0.root.Sensors.DataPMT))), np.int)
+                defsDone = True
             for i in range(len(pms)):
-                indxs.append( getPMid(file0, i) )
+                #indxs.append( getPMid(file0, i) )
                 for evt in range(min(100, len(file0.root.RD.pmtrwf))):
                     if i == 0:
                         cEvt = cEvt + 1
@@ -84,7 +92,7 @@ def main():
                     ftPha = np.angle(ft)
                     ## Section max. monitoring
                     grp = 1
-                    if pms[indxs[-1]] in grp2:
+                    if pms[i] in grp2:
                         grp = 2
                     for ishite, fq in enumerate(testFREQ):
                         inx = np.abs(freq-fq).argmin()
@@ -118,7 +126,7 @@ def main():
                         #print(freq[inx], freq[inx2])
                         #print(ftAb[inx+9], freq[inx+9], ftPha[inx+9])
                         ##if pms[indxs[-1]] == 9 and not testFill:
-                        if pms[indxs[-1]] == 18 and not testFill:
+                        if pms[i] == 18 and not testFill:
                             testWF = sg
                             testFill = True
                     ##
@@ -138,8 +146,8 @@ def main():
     fig, axes = plt.subplots(nrows=4,ncols=3, figsize=(20,6))
     for i, ax, row in zip(range(len(pms)), axes.flatten(), max_freq):
         ax.plot(np.arange(1, nevt+1), row)
-        j = indxs[i]#getPMid(file0, i)
-        ax.set_title('Max. freq. pmt '+str(pms[j])+' ('+str(fis_id[j])+')')
+        #j = indxs[i]#getPMid(file0, i)
+        ax.set_title('Max. freq. pmt '+str(pms[i])+' ('+str(fis_id[pms[i]])+')')
 
     #plt.tight_layout()
     fig.show()
@@ -160,9 +168,9 @@ def main():
         ax.plot(frq_plot, row/cEvt)
         bigFreqs.append([(mg,fq) for (mg,fq) in zip(row/cEvt,frq_plot) if mg > 1500 and mg < 2000 and fq >4500 and fq<10000])
         ax.set_xlim(500, 25000)
-        j = indxs[i]#getPMid(file0, i)
+        #j = indxs[i]#getPMid(file0, i)
         #print('pmt ', pms[j], frq_plot[np.argmax(row)])
-        ax.set_title('mean fft abs. val. pmt '+str(pms[j])+' ('+str(fis_id[j])+')')
+        ax.set_title('mean fft abs. val. pmt '+str(pms[i])+' ('+str(fis_id[pms[i]])+')')
 
     plt.tight_layout()
     fig3.show()
