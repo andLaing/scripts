@@ -2,6 +2,8 @@ import numpy as np
 import tables as tb
 import matplotlib.pyplot as plt
 
+import invisible_cities.core.fit_functions as fitf
+
 
 def weighted_av_std(values, weights):
 
@@ -101,3 +103,29 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
                     plt.close()
                     check_chan = input("Another channel? [num/stop]")
     return
+
+
+def display_pmt_fits(spectra_file):
+
+    with tb.open_file(spectra_file, 'r') as data:
+
+        bins  = np.array(data.root.HIST.pmtspe_bins)
+        specs = np.array(data.root.HIST.pmtspe).sum(axis=0)
+
+        ## bin x error
+        xerr = 0.5 * np.diff(bins)[0]
+
+        ## Overall fitting function
+        respF = fitf.SensorSpeResponse(bins)
+        ffuncs = {'ngau':respF.set_gaussians, 'intgau':respF.min_integ_gaussians, 'dfunc': respF.scaled_dark_pedestal, 'conv':respF.dark_convolution}
+
+        for i, spec in enumerate(specs):
+
+            ## Get fit parameters
+            vals = [ 22, 23, 24 ]
+            plt.errorbar(bins, spec,
+                         xerr=xerr, yerr=np.sqrt(spec),
+                         fmt='r.', ecolor='r', label='Data')
+
+            ## function name would come from the parameters too
+            plt.plot(bins, ffuncs['ngau'](bins, *vals), label='Full function')

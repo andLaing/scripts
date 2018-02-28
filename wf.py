@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
-from specto import load_input, getWF, get_wf_len
+#from specto import load_input, getWF, get_wf_len
 
 
 def main():
@@ -11,10 +11,12 @@ def main():
 
 
     ## Groups showing similar noise profile
-    grp1 = [ 1, 4, 5, 8, 9 ]
-    grp2 = [ 18, 19, 22, 23, 30, 31 ]
+    #grp1 = [ 1, 4, 5, 8, 9 ]
+    #grp2 = [ 18, 19, 22, 23, 30, 31 ]
+    grp1 = [ 0, 1, 6, 7, 4, 5 ]
+    grp2 = [ 12, 13, 16, 17, 18, 19 ]
     #grp3 = [ 18, 19, 22, 23, 26, 27 ]
-    with load_input(0) as dataF:
+    with tb.open_file(sys.argv[1], 'r') as dataF:
 
         npm = len(dataF.root.Sensors.DataPMT)#len(dataF.root.RD.pmtrwf[0])
         nevt = len(dataF.root.RD.pmtrwf)
@@ -28,7 +30,7 @@ def main():
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20,6))
         #fig.tight_layout()
         fig.show()
-        wf_len = get_wf_len(dataF)
+        wf_len = len(dataF.root.RD.pmtrwf[0][0])
         if len(sys.argv) > 3:
             wf_len = wf_len/2+1      
         elif len(sys.argv) == 3:
