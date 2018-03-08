@@ -60,86 +60,68 @@ def main():
     testWF = np.empty(1)
     testFill = False
     for fN in iglob(sys.argv[1]+'*_waveforms.h5'):
-        with load_input(fN) as file0:
-            if not defsDone:
-                wf_len = get_wf_len(file0)
+        while cEvt < 200:
+            with load_input(fN) as file0:
+                if not defsDone:
+                    wf_len = get_wf_len(file0)
                 #meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in pms ]
-                meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in range(12)]
-                frq_plot = np.empty(int(wf_len/2+1))
-                pms = np.fromiter((file0.root.Sensors.DataPMT[i][0] for i in range(len(file0.root.Sensors.DataPMT))), np.int)
-                defsDone = True
-            for i in range(len(pms)):
+                    meanAbs = [ np.zeros(int(wf_len/2+1), np.float64) for i in range(12)]
+                    phases = [ [] for i in range(12) ]
+                    frq_plot = np.empty(int(wf_len/2+1))
+                    pms = np.fromiter((file0.root.Sensors.DataPMT[i][0] for i in range(len(file0.root.Sensors.DataPMT))), np.int)
+                    defsDone = True
+                for i in range(len(pms)):
                 #indxs.append( getPMid(file0, i) )
-                for evt in range(min(100, len(file0.root.RD.pmtrwf))):
-                    if i == 0:
-                        cEvt = cEvt + 1
+                    for evt in range(min(100, len(file0.root.RD.pmtrwf))):
+                        if i == 0:
+                            cEvt = cEvt + 1
 
-                    sg = getWF(file0, i, evt)
+                        sg = getWF(file0, i, evt)
 
-                    sg = sg - np.mean(sg)
+                        sg = sg - np.mean(sg)
 
-                    if filtering:
+                        if filtering:
             ## Filtering
-                        sg = signal.lfilter(b, a, sg)
+                            sg = signal.lfilter(b, a, sg)
             ##
-                    sg_rms = np.std(sg)
+                        sg_rms = np.std(sg)
 
-                    ft = np.fft.rfft(sg)
-                    freq = np.fft.rfftfreq(len(sg), d=25E-9)
-                    if i == 0 and evt == 0:
-                        frq_plot = freq
-                    ftAb = np.absolute(ft)
-                    ftPha = np.angle(ft)
+                        ft = np.fft.rfft(sg)
+                        freq = np.fft.rfftfreq(len(sg), d=25E-9)
+                        if i == 0 and evt == 0:
+                            frq_plot = freq
+                        ftAb = np.absolute(ft)
+                        ftPha = np.angle(ft)
                     ## Section max. monitoring
-                    grp = 1
-                    if pms[i] in grp2:
-                        grp = 2
-                    for ishite, fq in enumerate(testFREQ):
-                        inx = np.abs(freq-fq).argmin()
-                        MAGS[grp][ishite] = np.append(MAGS[grp][ishite], ftAb[inx] )
-                        PHAS[grp][ishite] = np.append(PHAS[grp][ishite], ftPha[inx] )
-                    ## inx = np.argmax(np.select([(freq>4000)&(freq<6000)], [ftAb]))
-                    ## MAGS[grp][0] = np.append(MAGS[grp][0], ftAb[inx] )
-                    ## FREQS[grp][0] = np.append(FREQS[grp][0], freq[inx] )
-                    ## ##if pms[indxs[-1]] == grp2[0] or pms[indxs[-1]] == grp1[0]:
-                    ## PHAS[grp][0] = np.append(PHAS[grp][0], ftPha[inx] )
-                    ## inx = np.argmax(np.select([(freq>7500)&(freq<9500)], [ftAb]))
-                    ## MAGS[grp][1] = np.append(MAGS[grp][1], ftAb[inx] )
-                    ## FREQS[grp][1] = np.append(FREQS[grp][1], freq[inx] )
-                    ## #if pms[indxs[-1]] == grp2[0] or pms[indxs[-1]] == grp1[0]:
-                    ## PHAS[grp][1] = np.append(PHAS[grp][1], ftPha[inx] )
-                    ## inx = np.argmax(np.select([(freq>16000)&(freq<17000)], [ftAb]))
-                    ## ##inx = np.argmax(np.select([(freq>16500)&(freq<16700)], [ftAb]))
-                    ## MAGS[grp][2] = np.append(MAGS[grp][2], ftAb[inx] )
-                    ## FREQS[grp][2] = np.append(FREQS[grp][2], freq[inx] )
-                    ## ##if pms[indxs[-1]] == grp2[0] or pms[indxs[-1]] == grp1[0]:
-                    ## PHAS[grp][2] = np.append(PHAS[grp][2], ftPha[inx] )
-                    ## ## inx = np.argmax(np.select([(freq>17500)&(freq<20000)], [ftAb]))
-                    ## MAGS[grp][3] = np.append(MAGS[grp][3], ftAb[inx] )
-                    ## FREQS[grp][3] = np.append(FREQS[grp][3], freq[inx] )
-                    ## ##if pms[indxs[-1]] == grp2[0] or pms[indxs[-1]] == grp1[0]:
-                    ## PHAS[grp][3] = np.append(PHAS[grp][3], ftPha[inx] )
-                    ##if grp == 1 and evt == 0:
-                    if grp == 2 and evt == 0:
-                        inx = np.argmax(np.select([(freq>4000)&(freq<6000)], [ftAb]))
-                        inx2 = np.argmax(np.select([(freq>7500)&(freq<9500)], [ftAb]))
+                        grp = 1
+                        if pms[i] in grp2:
+                            grp = 2
+                        for ishite, fq in enumerate(testFREQ):
+                            inx = np.abs(freq-fq).argmin()
+                            MAGS[grp][ishite] = np.append(MAGS[grp][ishite], ftAb[inx] )
+                            PHAS[grp][ishite] = np.append(PHAS[grp][ishite], ftPha[inx] )
+
+                        if grp == 2 and evt == 0:
+                            inx = np.argmax(np.select([(freq>4000)&(freq<6000)], [ftAb]))
+                            inx2 = np.argmax(np.select([(freq>7500)&(freq<9500)], [ftAb]))
                         #print(freq[inx], freq[inx2])
                         #print(ftAb[inx+9], freq[inx+9], ftPha[inx+9])
                         ##if pms[indxs[-1]] == 9 and not testFill:
-                        if pms[i] == 18 and not testFill:
-                            testWF = sg
-                            testFill = True
+                            if pms[i] == 18 and not testFill:
+                                testWF = sg
+                                testFill = True
                     ##
-                    meanAbs[i] += ftAb#/nevt
-                    max_freq[i,evt] = freq[np.argmax(ftAb)]
-                    max_mag[i,evt] = np.amax(ftAb)/(sg_rms*len(sg))
+                        meanAbs[i] += ftAb#/nevt
+                        phases[i].append(ftPha)
+                        max_freq[i,evt] = freq[np.argmax(ftAb)]
+                        max_mag[i,evt] = np.amax(ftAb)/(sg_rms*len(sg))
 
             #for j in range(len(imp_freq)):
             #    mag_imp[j,i,evt] = ftAb[np.argwhere(freq==imp_freq[j])]
             #    pha_imp[j,i,evt] = np.angle(ft)[np.argwhere(freq==imp_freq[j])]
 
-                    sign_freqs[i].append( np.fromiter((i for (i,j) in zip(freq, ftAb) if j >= 0.05*len(sg)*sg_rms and i < 50000), np.float64) )
-                    n_frqs[i,evt] = len(sign_freqs[i][-1])
+                        sign_freqs[i].append( np.fromiter((i for (i,j) in zip(freq, ftAb) if j >= 0.05*len(sg)*sg_rms and i < 50000), np.float64) )
+                        n_frqs[i,evt] = len(sign_freqs[i][-1])
 
     
     #print('Indices: ', indxs)
@@ -188,8 +170,29 @@ def main():
     #    ax.set_title('Phase '+str(imp_freq[k])+' Hz')
 
     ## Monitoring
-    ## fig4, axes4 = plt.subplots(nrows=len(testFREQ),ncols=2, figsize=(20,15))
+    fig4, axes4 = plt.subplots(nrows=5,ncols=2, figsize=(20,15))
     print('Group 1:')
+    # Get the MAGNITUDES and PHASES fro the group of interest.
+    indx0 = np.argwhere(pms==0)[0][0]
+    #grp = [ 1, 12, 13, 16, 17 ]
+    grp = [ 7, 4 ]
+    #grp = [ 7, 18, 19 ]
+    i#ndxs = [ np.argwhere(pms==1)[0][0], np.argwhere(pms==12)[0][0], np.argwhere(pms==13)[0][0], np.argwhere(pms==16)[0][0], np.argwhere(pms==17)[0][0] ]
+    #indxs = [ np.argwhere(pms==7)[0][0], np.argwhere(pms==18)[0][0], np.argwhere(pms==19)[0][0] ]
+    indxs = [ np.argwhere(pms==7)[0][0], np.argwhere(pms==4)[0][0] ]
+    #for i in range(5):
+    for i in range(2):
+    #for i in range(3):
+        axes4[i][0].plot(meanAbs[indx0]/cEvt, meanAbs[indxs[i]]/cEvt)
+        axes4[i][0].set_title('Magnitudes Elecid 0 vs. Magnitudes Elecid '+str(grp[i]))
+        axes4[i][0].set_xlabel('Frequency mean magnitudes elecid 0')
+        axes4[i][0].set_ylabel('Frequency mean magnitudes elecid '+str(grp[i]))
+        axes4[i][1].hist(np.concatenate(np.subtract(phases[indx0], phases[indxs[i]])))
+        axes4[i][1].set_title('Phases Elecid 0 Phases Elecid '+str(grp[i]))
+        axes4[i][1].set_xlabel('Frequency phases elecid 0 - elcid '+str(grp[i]))
+        #axes4[i][1].set_ylabel('Frequency phases elecid '+str(grp[i]))
+    plt.tight_layout()
+    fig4.show()
     ## for ip1, row in enumerate(axes4):
     ##     ## row[0].hist(MAGS[1][ip1])
     ##     ## row[1].hist(PHAS[1][ip1])

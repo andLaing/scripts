@@ -26,11 +26,11 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
 
         min_incr = 0.5
 
-        binsE = np.array(eFile.root.HIST.sipmdar_bins)
-        binsD = np.array(dFile.root.HIST.sipmdar_bins)
+        binsE = np.array(eFile.root.HIST.sipm_dark_bins)
+        binsD = np.array(dFile.root.HIST.sipm_dark_bins)
 
-        specsE = np.array(eFile.root.HIST.sipmdar).sum(axis=0)
-        specsD = np.array(dFile.root.HIST.sipmdar).sum(axis=0)
+        specsE = np.array(eFile.root.HIST.sipm_dark).sum(axis=0)
+        specsD = np.array(dFile.root.HIST.sipm_dark).sum(axis=0)
 
         ## Bin half widths as x errors
         xerrE = 0.5 * np.diff(binsE)[0]
@@ -50,14 +50,14 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
 
                 mean_low   = avE + min_incr >= avD
                 rms_low    = rmsE + min_incr >= rmsD
-                stats_diff = espec.sum() != dspec.sum()
+                #stats_diff = espec.sum() != dspec.sum()
 
-                if mean_low or rms_low or stats_diff:
+                if mean_low or rms_low:# or stats_diff:
                     print("Possible dodgy channel: "+str(chan_no))
                     print("identified as having: ")
                     if mean_low:   print('low mean: meanE='+str(avE)+', meanD='+str(avD))
                     if rms_low:    print('low rms: rmsE='+str(rmsE)+', rmsD='+str(rmsD))
-                    if stats_diff: print('missing entries: sumE/sumD='+str(espec.sum()/dspec.sum()))
+                    #if stats_diff: print('missing entries: sumE/sumD='+str(espec.sum()/dspec.sum()))
 
                     plt.yscale('log')
                     plt.errorbar(binsE, espec, xerr=xerrE,
@@ -81,7 +81,7 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
             if check_chan == 'y':
                 check_chan = input("Which channel number? [num/stop]")
                 while check_chan != 'stop':
-                    indx = (int(chan_no) // 1000)*64 - 64 + int(chan_no)%1000
+                    indx = (int(check_chan) // 1000)*64 - 64 + int(check_chan)%1000
 
                     plt.yscale('log')
                     plt.errorbar(binsE, specsE[indx], xerr=xerrE,
@@ -91,14 +91,14 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
                                  yerr=np.sqrt(specsD[indx]), fmt='r.',
                                  ecolor='r',
                                  label='Dark current')
-                    plt.title('Elec/dark current comparison ch'+str(chan_no))
+                    plt.title('Elec/dark current comparison ch'+str(check_chan))
                     plt.xlabel('ADC')
                     plt.ylabel('AU')
                     plt.legend()
                     plt.show(block=False)
 
                     clif = input("How do you classify this channel? [dead/noisy/suspect/ok]")
-                    dChan.write(RUN_NO+' \t '+str(chan_no)+' \t '+clif+' \n');
+                    dChan.write(RUN_NO+' \t '+str(check_chan)+' \t '+clif+' \n');
                     plt.clf()
                     plt.close()
                     check_chan = input("Another channel? [num/stop]")
