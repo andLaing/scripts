@@ -3,6 +3,7 @@ import tables as tb
 import matplotlib.pyplot as plt
 
 import invisible_cities.core.fit_functions as fitf
+import invisible_cities.database.load_db   as DB
 
 
 def weighted_av_std(values, weights):
@@ -20,6 +21,8 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
     """ Compare basic parameters of electronics only
     and dark current runs and have the user classify
     channels with little difference """
+
+    sensors = np.array(DB.DataSiPM(int(RUN_NO)).SensorID)
 
     with tb.open_file(elec_name, 'r') as eFile, \
          tb.open_file(dark_name, 'r') as dFile:
@@ -43,7 +46,7 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
 
                 ## Maybe should be replaced with
                 ## database access.
-                chan_no = 1000 + 1000 * (ich // 64) + ich%64
+                chan_no = sensors[ich]
 
                 avE, rmsE = weighted_av_std(binsE, espec)
                 avD, rmsD = weighted_av_std(binsD, dspec)
@@ -81,7 +84,7 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
             if check_chan == 'y':
                 check_chan = input("Which channel number? [num/stop]")
                 while check_chan != 'stop':
-                    indx = (int(check_chan) // 1000)*64 - 64 + int(check_chan)%1000
+                    indx = np.argwhere(sensors==int(check_chan))
 
                     plt.yscale('log')
                     plt.errorbar(binsE, specsE[indx], xerr=xerrE,
