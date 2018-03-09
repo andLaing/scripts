@@ -15,7 +15,7 @@ from glob import iglob
 #fis_id = [ 1, 2, 5, 6, 9, 'A', 3, 4, 7, 8, 'B', 'C' ]
 #pms = [ 1, 4, 5, 8, 9, 18, 19, 22, 23, 30, 31 ]
 #fis_id = [ 8, 9, 'A', 'B', 'C', 1, 2, 3, 4, 5, 6 ]
-fis_id = {0:1, 1:2, 12:3, 13:4, 16:7, 17:8, 6:9, 7:'A', 18:'B', 19:'C', 4:5, 5:6}
+fis_id = {0:1, 1:2, 4:8, 8:5, 9:6, 12:9, 13:'A', 16:3, 17:4, 24:7, 28:'B', 29:'C'}
 grp1 = [ 0, 1, 12, 13, 6, 7, 4, 5 ]
 grp2 = [ 16, 17, 18, 19 ]
 
@@ -174,12 +174,12 @@ def main():
     print('Group 1:')
     # Get the MAGNITUDES and PHASES fro the group of interest.
     indx0 = np.argwhere(pms==0)[0][0]
-    #grp = [ 1, 12, 13, 16, 17 ]
-    grp = [ 7, 4 ]
-    #grp = [ 7, 18, 19 ]
+    #grp = [ 1, 4, 16, 17, 24 ]
+    grp = [ 8, 9 ]
+    #grp = [ 12, 13, 28, 29 ]
     i#ndxs = [ np.argwhere(pms==1)[0][0], np.argwhere(pms==12)[0][0], np.argwhere(pms==13)[0][0], np.argwhere(pms==16)[0][0], np.argwhere(pms==17)[0][0] ]
     #indxs = [ np.argwhere(pms==7)[0][0], np.argwhere(pms==18)[0][0], np.argwhere(pms==19)[0][0] ]
-    indxs = [ np.argwhere(pms==7)[0][0], np.argwhere(pms==4)[0][0] ]
+    indxs = [ np.argwhere(pms==grp[0])[0][0], np.argwhere(pms==grp[1])[0][0] ]
     #for i in range(5):
     for i in range(2):
     #for i in range(3):
@@ -311,13 +311,13 @@ def main():
     magFFT = np.absolute(np.fft.rfft(osc))
     frqs = np.fft.rfftfreq(len(osc), d=25E-9)
 
-    fig6, axes6 = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
-    axes6[0].plot(t1, testWF)
-    axes6[0].plot(t1, osc)
-    axes6[1].plot(frqs, magFFT)
-    axes6[1].set_xlim(0,25000)
-    fig6.show()
-    fig6.savefig('grp2evt0_simtest.pdf')
+    #fig6, axes6 = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
+    #axes6[0].plot(t1, testWF)
+    #axes6[0].plot(t1, osc)
+    #axes6[1].plot(frqs, magFFT)
+    #axes6[1].set_xlim(0,25000)
+    #fig6.show()
+    #fig6.savefig('grp2evt0_simtest.pdf')
         
     #fig4.show()
     #raw_input("ready to move on?")
