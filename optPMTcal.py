@@ -4,6 +4,8 @@ import tables as tb
 import matplotlib.pyplot as plt
 from functools import partial
 
+from calutils import weighted_av_std
+
 import invisible_cities.core.fit_functions as fitf
 import invisible_cities.reco.spe_response  as speR
 
@@ -150,7 +152,7 @@ def optPMTCal(fileNames, intWidths, funcName, min_stat, limit_ped):
                 if k < 4:
                     errs = np.fromiter((pars[j][k*2+1] for pars in fResults), np.float)
                 ax.errorbar(intWidths, vals, yerr=errs, fmt='r.', ecolor='r')
-                ax.set_title(axis_titles[k]+' vs integral width')
+                ax.set_title(axis_titles[k]+' vs integral width for PMT '+str(j))
         plt.tight_layout()
         plt.draw()
         catcher = input("next plot? q to stop ")

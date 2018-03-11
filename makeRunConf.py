@@ -9,8 +9,8 @@ run_number = sys.argv[3]
 out_file = sys.argv[4]
 
 # Standard integral values
-int_start = '5.8'
-int_width = '0.5'
+int_start = '5.6'
+int_width = '0.65'
 if 'sipm' in base_conf:
     int_start = '41'
     int_width = '2'
