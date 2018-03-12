@@ -8,6 +8,7 @@ from functools import partial
 
 import invisible_cities.core.fit_functions as fitf
 import invisible_cities.reco.spe_response  as speR
+from invisible_cities.database import load_db as DB
 
 """
 run as:
