@@ -66,21 +66,29 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
     return sd0, bd0
 
 
-def main():
+def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
 
     """ Check new fit function on SiPM spectra """
     global useSavedSeeds, GainSeeds, SigSeeds
 
-    file_name = sys.argv[1]
-    func_name = sys.argv[2]
-    min_stat  = 0
-    limit_ped = 10000.
-    if len(sys.argv) > 3:
-        useSavedSeeds = True if 'true' in sys.argv[3] else False
-        min_stat = int(sys.argv[4])
-        limit_ped = int(sys.argv[5])
+    file_name = dataF
+    func_name = funcName
+    min_stat = minStat
+    limit_ped = limitPed
+    run_no = file_name[file_name.find('R')+1:file_name.find('R')+5]
+    optimise = True
+    if not file_name:
+        optimise = False
+        file_name = sys.argv[1]
+        func_name = sys.argv[2]
+        min_stat  = 0
+        limit_ped = 10000.
+        if len(sys.argv) > 3:
+            useSavedSeeds = True if 'true' in sys.argv[3] else False
+            min_stat = int(sys.argv[4])
+            limit_ped = int(sys.argv[5])
 
-    run_no = int(file_name[file_name.find('R')+1:file_name.find('R')+5])
+    run_no = int(run_no)
     chNos = DB.DataSiPM(run_no).SensorID.values
     if useSavedSeeds:
         dodgy = DB.DataSiPM(run_no).index[DB.DataSiPM(run_no).Active==0].values
@@ -168,27 +176,32 @@ def main():
         print('About to fit channel ', chNos[ich])
         rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], seeds, sigma=errs[b1:b2], bounds=bounds)
         chi = rfit.chi2
-        if chNos[ich] in specialCheck or chi >= 10:
-            if chNos[ich] in specialCheck: print('Special check channel '+str(chNos[ich]))
-            print('Channel fit: ', rfit.values, chi)
-            plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
-            plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
-            plt.title('Spe response fit to channel '+str(chNos[ich]))
-            plt.xlabel('ADC')
-            plt.ylabel('AU')
-            plt.show()
+        if not optimise:
+            if chNos[ich] in specialCheck or chi >= 10:
+                if chNos[ich] in specialCheck: print('Special check channel '+str(chNos[ich]))
+                print('Channel fit: ', rfit.values, chi)
+                plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
+                plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
+                plt.title('Spe response fit to channel '+str(chNos[ich]))
+                plt.xlabel('ADC')
+                plt.ylabel('AU')
+                plt.show()
         outData.append([chNos[ich], rfit.values, rfit.errors, respF.n_gaussians, chi])
 
     ## Couple of plots
     gainIndx = 2
     if 'gau' in func_name:
         gainIndx = 4
-    
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
+   
     pVals = [np.fromiter((ch[1][gainIndx] for ch in outData), np.float),
              np.fromiter((ch[1][gainIndx+1] for ch in outData), np.float),
              np.fromiter((ch[1][1] for ch in outData), np.float),
              np.fromiter((ch[4] for ch in outData), np.float)]
+    if optimise:
+        sipmIn.close()
+        return pVals
+
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
     for ax, val in zip(axes.flatten(), pVals):
         ax.hist(val, bins=100)
     fig.show()
@@ -201,4 +214,4 @@ def main():
         
 
 if __name__ == '__main__':
-    main()
+    fit_dataset()

@@ -8,6 +8,7 @@ from calutils import weighted_av_std
 
 import invisible_cities.core.fit_functions as fitf
 import invisible_cities.reco.spe_response  as speR
+from sipmCalFit import fit_dataset         as sipmF
 
 
 GainSeeds = [21.3, 23.4, 26.0, 25.7, 30.0, 22.7, 25.1, 32.7, 23.1, 25.5, 20.8, 22.0]
@@ -159,3 +160,24 @@ def optPMTCal(fileNames, intWidths, funcName, min_stat, limit_ped):
         if catcher == 'q':
             exit()
         plt.cla()
+
+def optSiPMCal(fileNames, intWidths, funcName, min_stat, limit_ped):
+
+    fResults = []
+    for i in range(len(fileNames)):
+        fResults.append(sipmF(fileNames[i], funcName, min_stat, limit_ped))
+
+    axistitles = ['Gain distribution',
+                  '1pe sigma distribution',
+                  'Poisson mu distribution',
+                  'Chi^2 distribution']
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
+    for j, vals in enumerate(fResults):
+        for ax, val, axtit in zip(axes.flatten(), vals, axistitles):
+            ax.hist(val, bins=100, range=(0, 30), label='Integral width '+str(intWidths[j]))
+            if j == 0:
+                ax.set_title(axtit)
+    plt.legend()
+    plt.tight_layout()
+    fig.show()
+    catcher = input('thoughts?')
