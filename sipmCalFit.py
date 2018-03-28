@@ -5,6 +5,7 @@ from scipy.signal import find_peaks_cwt
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from functools import partial
+from pylab import cm
 
 #from JA_NEWCalibration.calib import responseWithDataPed
 import invisible_cities.reco.spe_response as speR
@@ -16,6 +17,7 @@ from pmtCalFit import weighted_av_std
 useSavedSeeds = True
 GainSeeds = []
 SigSeeds  = []
+scalerChis = []
 
 
 ## Probably shite
@@ -27,7 +29,7 @@ def scaler(x, mu):
 
 def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
 
-    global GainSeeds, SigSeeds
+    global GainSeeds, SigSeeds, useSavedSeeds, scalerChis
     
     norm_seed = spec.sum()
 
@@ -37,15 +39,26 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
         GSeed  = GainSeeds[indx]
         GSSeed = SigSeeds[indx]
     else:
-        pDL = find_peaks_cwt(led, np.arange(4, 20), min_snr=1, noise_perc=5)
+        pDL = find_peaks_cwt(spec, np.arange(4, 20), min_snr=1, noise_perc=5)
         p1pe = pDL[(bins[pDL]>10) & (bins[pDL]<20)]
-        p1pe = p1pe[spec[p1pe].argmax()]
+        if len(p1pe) == 0:
+            p1pe = np.argwhere(bins==15)[0][0]
+        else:
+            p1pe = p1pe[spec[p1pe].argmax()]
         p1 = fitf.fit(fitf.gauss, bins[p1pe-5:p1pe+5], spec[p1pe-5:p1pe+5], seed=(spec[p1pe], bins[p1pe], 3.))
-        GSeed = p1.values[1]
-        GSSeed = p1.values[2]
+        GSeed = p1.values[1] - ped_vals[1]
+        if p1.values[2] <= ped_vals[2]:
+            GSSeed = 0.5
+        else:
+            GSSeed = np.sqrt(p1.values[2]**2 - ped_vals[2]**2)
 
     dscale = spec[bins<5].sum() / fitf.gauss(bins[bins<5], *ped_vals).sum()
-    fscale = fitf.fit(scaler, bins[bins<5], spec[bins<5], (dscale))
+    errs = np.sqrt(spec[bins<5])
+    errs[errs==0] = 1
+    fscale = fitf.fit(scaler, bins[bins<5], spec[bins<5], (dscale), sigma=errs)
+    scalerChis.append(fscale.chi2)
+    if scalerChis[-1] >= 500:
+        print('Suspect channel index ', indx)
     muSeed = -np.log(fscale.values[0])
     if muSeed < 0: muSeed = 0.001
 
@@ -63,6 +76,7 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
 
     sd0 = (norm_seed, muSeed, GSeed, GSSeed)
     bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
+    print('Seed check: ', sd0)
     return sd0, bd0
 
 
@@ -75,7 +89,6 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     func_name = funcName
     min_stat = minStat
     limit_ped = limitPed
-    run_no = file_name[file_name.find('R')+1:file_name.find('R')+5]
     optimise = True
     if not file_name:
         optimise = False
@@ -88,6 +101,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
             min_stat = int(sys.argv[4])
             limit_ped = int(sys.argv[5])
 
+    run_no = file_name[file_name.find('R')+1:file_name.find('R')+5]
     run_no = int(run_no)
     chNos = DB.DataSiPM(run_no).SensorID.values
     if useSavedSeeds:
@@ -115,7 +129,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     outData = []
     ## Extra protection since 3065 is weird
     knownDead = [ 3056, 8056, 14010, 25049 ]
-    specialCheck = [1006, 1007, 3000, 3001, 7000, 22029, 28056, 28057]
+    specialCheck = [1006, 1007, 3000, 3001, 5000, 7000, 22029, 28056, 28057]
     for ich, (led, dar) in enumerate(zip(specsL, specsD)):
         if chNos[ich] in knownDead:
             outData.append([chNos[ich], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], 0, 0])
@@ -176,12 +190,22 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         print('About to fit channel ', chNos[ich])
         rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], seeds, sigma=errs[b1:b2], bounds=bounds)
         chi = rfit.chi2
+        ## Attempt to catch bad fits and refit (currently only valid for dfunc and conv)
+        if chi >= 7 or rfit.values[3] >= 2.5 or rfit.values[3] <= 1:
+            ## The offending parameter seems to be the sigma in most cases
+            nseed = rfit.values
+            nseed[3] = 1.7
+            nbound = [(bounds[0][0], bounds[0][1], bounds[0][2], 1),
+                      (bounds[1][0], bounds[1][1], bounds[1][2], 2.5)]
+            rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], nseed, sigma=errs[b1:b2], bounds=nbound)
+            chi = rfit.chi2
         if not optimise:
-            if chNos[ich] in specialCheck or chi >= 10:
+            if chNos[ich] in specialCheck or chi >= 10 or rfit.values[2] < 12 or rfit.values[3] > 3:
                 if chNos[ich] in specialCheck: print('Special check channel '+str(chNos[ich]))
                 print('Channel fit: ', rfit.values, chi)
                 plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
                 plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
+                plt.plot(bins[b1:b2], respF(bins[b1:b2], *seeds), 'g')
                 plt.title('Spe response fit to channel '+str(chNos[ich]))
                 plt.xlabel('ADC')
                 plt.ylabel('AU')
@@ -201,6 +225,15 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         sipmIn.close()
         return pVals
 
+    global scalerChis
+    ## pos_x = DB.DataSiPM(run_no).X.values
+    ## pos_y = DB.DataSiPM(run_no).Y.values
+    ## fg2, ax2 = plt.subplots()
+    ## p = ax2.pcolor(pos_x, pos_y, scalerChis, cmap=cm.Spectral, vmin=np.abs(scalerChis).min(), vmax=np.abs(scalerChis).max())
+    ## plt.colorbar(p, ax=ax2)
+    ## fg2.show()
+    #plt.hist(scalerChis, bins=1000)
+    #plt.show()
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
     for ax, val in zip(axes.flatten(), pVals):
         ax.hist(val, bins=100)

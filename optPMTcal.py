@@ -3,12 +3,14 @@ import numpy as np
 import tables as tb
 import matplotlib.pyplot as plt
 from functools import partial
+from cycler import cycler
 
 from calutils import weighted_av_std
 
-import invisible_cities.core.fit_functions as fitf
-import invisible_cities.reco.spe_response  as speR
-from sipmCalFit import fit_dataset         as sipmF
+import invisible_cities.core.fit_functions        as fitf
+import invisible_cities.reco.spe_response         as speR
+from invisible_cities.database import load_db     as DB
+from sipmCalFit                import fit_dataset as sipmF
 
 
 GainSeeds = [21.3, 23.4, 26.0, 25.7, 30.0, 22.7, 25.1, 32.7, 23.1, 25.5, 20.8, 22.0]
@@ -67,7 +69,7 @@ def fit_dataset(dataF_table, funcName, min_stat, limit_ped):
     ## pedSig err poissonMu err gain err gSig err chi2
     fitVals = np.zeros((12, 9), dtype=np.float)
     for i, (dspec, lspec) in enumerate(zip(specsD, specsL)):
-
+        #print('Channel: ', i)
         b1 = 0
         b2 = len(dspec)
         if min_stat != 0:
@@ -161,6 +163,102 @@ def optPMTCal(fileNames, intWidths, funcName, min_stat, limit_ped):
             exit()
         plt.cla()
 
+
+def comparison_plots(fileNames, funcName, min_stat, limit_ped):
+
+    fResults = []
+    for i in range(len(fileNames)):
+        #print('File: ', fileNames[i])
+        with tb.open_file(fileNames[i], 'r') as dataF:
+            fResults.append(fit_dataset(dataF, funcName, min_stat, limit_ped))
+
+    axistitles = ['Pedestal sigma vs. channel number',
+                  'Normalised Poisson mu vs. channel number',
+                  'Gain vs. channel number',
+                  '1pe sigma vs. channel number',
+                  'Fit chi^2', 'Legend']
+    chNos = np.arange(12)
+    run_nos = [f[f.find('R')+1:f.find('R')+5] for f in fileNames]
+    run_nos = [run+'MAU' if f.find('Mau') != -1 else run for f, run in zip(fileNames, run_nos)]
+    run_nos = [run+'MEAN' if f.find('Mean') != -1 else run for f, run in zip(fileNames, run_nos)]
+    
+    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20,6))
+    #cm = plt.get_cmap('gist_rainbow')
+    for j, (vals, run) in enumerate(zip(fResults, run_nos)):
+        for k, (ax, axtit) in enumerate(zip(axes.flatten(), axistitles)):
+            if j == 0:
+                #ax.set_prop_cycle(cycler('color', [cm(1.*i/vals.shape[0]) for i in range(vals.shape[0])]))
+                ax.set_title(axtit)
+                ax.set_xlabel('Channel number')
+            if k < 4:
+                if k == 1:
+                    ## We want to normalise to the maximum value here.
+                    maxV = vals[:,2*k].max()
+                    maxE = vals[:,2*k+1][vals[:,2*k].argmax()]
+                    vp = vals[:,2*k] / maxV
+                    vpE = np.fromiter((z*np.sqrt((ex/x)**2+(maxE/maxV)**2) for z, x, ex in zip(vp, vals[:,2*k], vals[:,2*k+1])), np.float)
+                    ax.errorbar(chNos, vp, yerr=vpE, label='Run '+run)
+                else:
+                    ax.errorbar(chNos, vals[:,2*k], yerr=vals[:,2*k+1], label='Run '+run)
+            elif k == 4:
+                ax.plot(chNos, vals[:,2*k], label='Run '+run)
+            else:
+                ## trick to put legend on empty subplot
+                ax.plot(0,0, label='Run '+run)
+                ax.legend(ncol=2)
+    plt.tight_layout()
+    fig.show()
+    plt.show()
+
+
+def poisson_plots(fileNames, funcName, led_positions, min_stat, limit_ped):
+
+    fResults = []
+    for i in range(len(fileNames)):
+        #print('File: ', fileNames[i])
+        with tb.open_file(fileNames[i], 'r') as dataF:
+            fResults.append(fit_dataset(dataF, funcName, min_stat, limit_ped))
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
+    pm1_mean     = []
+    pm1_errs     = []
+    pms_relative = []
+    pms_rel_errs = []
+    mask = np.array([True, False, True, True, True, True, True, True, True, True, True, True])
+    for j, (vals, led) in enumerate(zip(fResults, led_positions)):
+        pm1_val = vals[1,2] / vals[:,2].mean()
+        meanErr = np.sqrt(np.sum(vals[:,3]**2)) / len(vals[:,2])
+        pm1_err = pm1_val * np.sqrt((vals[1,3]/vals[1,2])**2+(meanErr/vals[:,2].mean())**2)
+        pm1_mean.append(pm1_val)
+        pm1_errs.append(pm1_errs)
+        maxV = vals[:,2].max()
+        vp = vals[:,2] / maxV
+        maxE = vals[:,3][vals[:,2].argmax()]
+        vpE = np.fromiter((z*np.sqrt((ex/x)**2+(maxE/maxV)**2) for z, x, ex in zip(vp, vals[:,2], vals[:,3])), np.float)
+        pms_relative.append(vp[mask])
+        pms_rel_errs.append(vpE[mask])
+
+    ## PMT positions, doesn't change run to run, use first cal run from Run III
+    db = DB.DataPMT(5316)
+    pmt_x = db.X.values
+    pmt_y = db.Y.values
+    pm1_rel  = np.fromiter((np.sqrt((pmt_x[1]-p[0])**2+(pmt_y[1]-p[1])**2) for p in led_positions), np.float)
+    pms_rpos = [np.fromiter((np.sqrt((x-p[0])**2+(y-p[1])**2) for x, y in zip(pmt_x[mask], pmt_y[mask])), np.float) for p in led_positions]
+    pms_rpos = np.concatenate(pms_rpos)
+    axes[0].errorbar(pm1_rel, pm1_mean, yerr=pm1_err, fmt='.')
+    axes[0].set_title('PMT 1 Poisson mu relative to run average')
+    axes[0].set_xlabel('XY distance between LED and PMT (mm)')
+    axes[0].set_ylabel('Poisson mu relative to mean')
+    axes[1].errorbar(pms_rpos, np.concatenate(pms_relative), yerr=np.concatenate(pms_rel_errs), fmt='.')
+    axes[1].set_title('Poisson mu relative to max.')
+    axes[1].set_xlabel('XY distance between LED and PMT (mm)')
+    axes[1].set_ylabel('Poisson mu relative to max value')
+    plt.tight_layout()
+    fig.show()
+    plt.show()
+        
+        
+
 def optSiPMCal(fileNames, intWidths, funcName, min_stat, limit_ped):
 
     fResults = []
@@ -174,7 +272,7 @@ def optSiPMCal(fileNames, intWidths, funcName, min_stat, limit_ped):
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
     for j, vals in enumerate(fResults):
         for ax, val, axtit in zip(axes.flatten(), vals, axistitles):
-            ax.hist(val, bins=100, range=(0, 30), label='Integral width '+str(intWidths[j]))
+            ax.hist(val, bins=100, range=(0, 30), log=True, label='Integral width '+str(intWidths[j]))
             if j == 0:
                 ax.set_title(axtit)
     plt.legend()

@@ -113,6 +113,9 @@ def main():
     bins = np.array(dats.root.HIST.pmt_dark_bins)
     specsD = np.array(dats.root.HIST.pmt_dark).sum(axis=0)
     specsL = np.array(dats.root.HIST.pmt_spe).sum(axis=0)
+    ## bins = np.array(dats.root.HIST.pmtdar_bins)
+    ## specsD = np.array(dats.root.HIST.pmtdar).sum(axis=0)
+    ## specsL = np.array(dats.root.HIST.pmtspe).sum(axis=0)
 
     #respF = fitf.SensorSpeResponse(bins)
     #ffuncs = {'ngau':respF.set_gaussians, 'intgau':respF.min_integ_gaussians, 'dfunc': respF.scaled_dark_pedestal, 'conv':respF.dark_convolution}
