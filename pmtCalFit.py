@@ -9,6 +9,7 @@ from functools import partial
 import invisible_cities.core.fit_functions as fitf
 import invisible_cities.reco.spe_response  as speR
 from invisible_cities.database import load_db as DB
+import invisible_cities.io.channel_param_io as pIO
 
 """
 run as:
@@ -125,14 +126,23 @@ def main():
               'dfunc':partial(speR.scaled_dark_pedestal, min_integral=100),
               'conv':partial(speR.dark_convolution, min_integral=100)}
     pOrders = {'ngau':'norm err poismu err ped err pedSig err gain err 1peSig err', 'intgau':'norm err poismu err ped err pedSig err gain err 1peSig err', 'dfunc':'norm err poismu err gain err 1peSig err', 'conv':'norm err poismu err gain err 1peSig err'}
+    ## Not ideal...
+    fnam = {'ngau':'poisson_scaled_gaussians_ngau', 'intgau':'poisson_scaled_gaussians_min',
+            'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution'}
 
-    pOut = open('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.dat', 'w')
-    pOut.write('InputFile: '+fileName+'\n')
-    pOut.write('FuncName: '+funcName+'\n')
-    pOut.write('Minimum stats: '+str(min_stat)+'\n')
-    pOut.write('Pedestal nsig limits: +/-'+str(limit_ped)+'\n')
-    pOut.write('\n \n')
-    pOut.write('Parameter order: '+pOrders[funcName]+'\n')
+    ## pOut = open('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.dat', 'w')
+    pOut = tb.open_file('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.h5', 'w')
+    ## pOut.write('InputFile: '+fileName+'\n')
+    ## pOut.write('FuncName: '+funcName+'\n')
+    ## pOut.write('Minimum stats: '+str(min_stat)+'\n')
+    ## pOut.write('Pedestal nsig limits: +/-'+str(limit_ped)+'\n')
+    ## pOut.write('\n \n')
+    ## pOut.write('Parameter order: '+pOrders[funcName]+'\n')
+    param_writer = pIO.channel_param_writer(pOut,
+                                            sensor_type='pmt',
+                                            func_name=fnam[funcName],
+                                            param_names=pIO.generic_params)
+    outDict = {}
     for i, (dspec, lspec) in enumerate(zip(specsD, specsL)):
 
         b1 = 0
@@ -142,6 +152,8 @@ def main():
             b1 = valid_bins[0][0]
             b2 = valid_bins[-1][0]
 
+        outDict[pIO.generic_params[-2]] = (bins[b1], bins[min(len(bins)-1, b2)])
+
         ## Fit the dark spectrum with a Gaussian (not really necessary for the conv option)
         gb0 = [(0, -100, 0), (1e99, 100, 10000)]
         av, rms = weighted_av_std(bins, dspec)
@@ -149,6 +161,8 @@ def main():
         errs = np.sqrt(dspec)
         errs[errs==0] = 0.0001
         gfitRes = fitf.fit(fitf.gauss, bins, dspec, sd0, sigma=errs, bounds=gb0)
+        outDict[pIO.generic_params[2]] = (gfitRes.values[1], gfitRes.errors[1])
+        outDict[pIO.generic_params[3]] = (gfitRes.values[2], gfitRes.errors[2])
 
         ## Scale just in case we lost a different amount of integrals in dark and led
         scale = lspec.sum() / dspec.sum()
@@ -198,7 +212,16 @@ def main():
         print('Number of Gaussians: ', respF.n_gaussians)
         print('Fit chi2: ', rfit.chi2)
         ## pOut.write('Indx: '+str(i)+', params: '+str(np.vstack((rfit.values, rfit.errors)).reshape((-1,), order='F'))+', ngaus = '+str(respF.nGau)+', chi2 = '+str(rfit.chi2)+'\n')
-        pOut.write('Indx: '+str(i)+', params: '+str(np.vstack((rfit.values, rfit.errors)).reshape((-1,), order='F'))+', ngaus = '+str(respF.n_gaussians)+', chi2 = '+str(rfit.chi2)+'\n')
+        ##pOut.write('Indx: '+str(i)+', params: '+str(np.vstack((rfit.values, rfit.errors)).reshape((-1,), order='F'))+', ngaus = '+str(respF.n_gaussians)+', chi2 = '+str(rfit.chi2)+'\n')
+        outDict[pIO.generic_params[0]] = (rfit.values[0], rfit.errors[0])
+        outDict[pIO.generic_params[1]] = (rfit.values[1], rfit.errors[1])
+        gIndx = 2
+        if 'gau' in funcName:
+            gIndx = 4
+        outDict[pIO.generic_params[4]] = (rfit.values[gIndx], rfit.errors[gIndx])
+        outDict[pIO.generic_params[5]] = (rfit.values[gIndx+1], rfit.errors[gIndx+1])
+        outDict[pIO.generic_params[-1]] = (respF.n_gaussians, rfit.chi2)
+        param_writer(i, outDict)
         plt.show(block=False)
         next_plot = input('press enter to move to next fit')
         if 's' in next_plot:

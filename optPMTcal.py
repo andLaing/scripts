@@ -180,7 +180,6 @@ def comparison_plots(fileNames, funcName, min_stat, limit_ped):
     chNos = np.arange(12)
     run_nos = [f[f.find('R')+1:f.find('R')+5] for f in fileNames]
     run_nos = [run+'MAU' if f.find('Mau') != -1 else run for f, run in zip(fileNames, run_nos)]
-    run_nos = [run+'MEAN' if f.find('Mean') != -1 else run for f, run in zip(fileNames, run_nos)]
     
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20,6))
     #cm = plt.get_cmap('gist_rainbow')

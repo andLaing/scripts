@@ -16,8 +16,11 @@ from glob import iglob
 #pms = [ 1, 4, 5, 8, 9, 18, 19, 22, 23, 30, 31 ]
 #fis_id = [ 8, 9, 'A', 'B', 'C', 1, 2, 3, 4, 5, 6 ]
 fis_id = {0:1, 1:2, 4:8, 8:5, 9:6, 12:9, 13:'A', 16:3, 17:4, 24:7, 28:'B', 29:'C'}
-grp1 = [ 0, 1, 12, 13, 6, 7, 4, 5 ]
-grp2 = [ 16, 17, 18, 19 ]
+## grp1 = [ 0, 1, 12, 13, 6, 7, 4, 5 ]
+## grp2 = [ 16, 17, 18, 19 ]
+grp1 = [ 0, 1, 16, 17, 24, 4 ]
+grp2 = [ 12, 13, 28, 29 ]
+grp3 = [ 8, 9 ]
 
 #testFREQ = [ 5625., 8437.5, 15625., 16250., 17500., 17812.5, 18125., 18437.5, 18750., 19062.5, 21250., 21875. ]
 ## testFREQ = [ 5937.5, 7812.5, 15625., 16250., 17500., 17812.5, 18125., 18437.5, 18750., 19062.5, 21250., 21875. ]
@@ -52,9 +55,9 @@ def main():
     pms = []
     bigFreqs = []
     ## MONITORING
-    MAGS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ] }
-    FREQS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ] }
-    PHAS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ] }
+    MAGS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ], 3:[ np.array([]) for i in range(len(testFREQ)) ] }
+    FREQS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ], 3:[ np.array([]) for i in range(len(testFREQ)) ] }
+    PHAS = { 1:[ np.array([]) for i in range(len(testFREQ)) ], 2:[ np.array([]) for i in range(len(testFREQ)) ], 3:[ np.array([]) for i in range(len(testFREQ)) ] }
     ##
     cEvt = 0
     testWF = np.empty(1)
@@ -96,6 +99,8 @@ def main():
                         grp = 1
                         if pms[i] in grp2:
                             grp = 2
+                        elif pms[i] in grp3:
+                            grp = 3
                         for ishite, fq in enumerate(testFREQ):
                             inx = np.abs(freq-fq).argmin()
                             MAGS[grp][ishite] = np.append(MAGS[grp][ishite], ftAb[inx] )
@@ -203,16 +208,16 @@ def main():
     ##         row[1].set_ylim(-10, 10)
     ##     else:
     ##         row[1].plot(range(len(PHAS[1][ip1])), PHAS[1][ip1])
-    freqFile = tb.open_file('osc_magnitudes.h5', 'w')
-    atca1 = np.array([])
-    atca2 = np.array([])
-    t1 = np.arange(0.,3.2e-3,25e-9)
-    t1 = t1[:-1]
+    ##freqFile = tb.open_file('osc_magnitudes.h5', 'w')
+    ##atca1 = np.array([])
+    ##atca2 = np.array([])
+    ##t1 = np.arange(0.,3.2e-3,25e-9)
+    ##t1 = t1[:-1]
     for ip1 in range(len(MAGS[1])):
         magMean = np.mean(MAGS[1][ip1])
         magRMS = np.std(MAGS[1][ip1], ddof=1)
-        atca1 = np.append(atca1, round(magMean, 1)/len(t1))
-        #print(magMean, ', ', magRMS, magRMS/magMean)
+        ##atca1 = np.append(atca1, round(magMean, 1)/len(t1))
+        print(magMean, ', ', magRMS, magRMS/magMean)
 
     print('correlation atca1: ', np.corrcoef(PHAS[1]), np.max(np.corrcoef(PHAS[1])))
     ## plt.tight_layout()
@@ -251,12 +256,18 @@ def main():
     ##         row[1].plot(range(len(PHAS[2][ip2])), PHAS[2][ip2])    
     for ip2 in range(len(MAGS[2])):
         magMean = np.mean(MAGS[2][ip2])
-        atca2 = np.append(atca2, round(magMean, 1)/len(t1))
+        #atca2 = np.append(atca2, round(magMean, 1)/len(t1))
         magRMS = np.std(MAGS[2][ip2], ddof=1)
-        #print(magMean, ', ', magRMS, magRMS/magMean)
-    freqFile.create_array(freqFile.root, 'atca1_mag', atca1)
-    freqFile.create_array(freqFile.root, 'atca2_mag', atca2)
-    freqFile.close()
+        print(magMean, ', ', magRMS, magRMS/magMean)
+    print('Group 3:')
+    for ip3 in range(len(MAGS[3])):
+        magMean = np.mean(MAGS[3][ip3])
+        #atca2 = np.append(atca2, round(magMean, 1)/len(t1))
+        magRMS = np.std(MAGS[3][ip3], ddof=1)
+        print(magMean, ', ', magRMS, magRMS/magMean)
+    #freqFile.create_array(freqFile.root, 'atca1_mag', atca1)
+    #freqFile.create_array(freqFile.root, 'atca2_mag', atca2)
+    #freqFile.close()
     ## plt.tight_layout()
     ## axes5[0][0].hist(MAGS[2][0], bins=100)
     ## axes5[0][1].hist(FREQS[2][0], bins=100)
@@ -289,7 +300,7 @@ def main():
     ## print('sec3: ', np.mean(MAGS[2][2]), np.std(MAGS[2][2], ddof=1), np.mean(FREQS[2][2]), np.std(FREQS[2][2], ddof=1))
     ## print('sec4: ', np.mean(MAGS[2][3]), np.std(MAGS[2][3], ddof=1), np.mean(FREQS[2][3]), np.std(FREQS[2][3], ddof=1))
 
-    osc = oscSim(t1, MAGS[2], PHAS[2], testFREQ, 0)
+    #osc = oscSim(t1, MAGS[2], PHAS[2], testFREQ, 0)
     #print([ x[0] for x in MAGS[1] ])
     #print([ y[0] for y in PHAS[1] ])
     ## osc = 2*MAGS[1][3][0]*np.cos(2*np.pi*FREQS[1][3][0]*t1+PHAS[1][3][0])/len(t1) +2*MAGS[1][2][0]*np.cos(2*np.pi*FREQS[1][2][0]*t1+PHAS[1][2][0])/len(t1) +2*MAGS[1][1][0]*np.cos(2*np.pi*FREQS[1][1][0]*t1+PHAS[1][1][0])/len(t1) +2*MAGS[1][0][0]*np.cos(2*np.pi*FREQS[1][0][0]*t1+PHAS[1][0][0])/len(t1)+2*6416.*np.cos(2*np.pi*17812.5*t1-0.78)/len(t1)+2*6565.*np.cos(2*np.pi*18437.5*t1-1.36)/len(t1)+2*3281.1*np.cos(2*np.pi*21250*t1-2.7)/len(t1)+2*4045*np.cos(2*np.pi*21875*t1-0.48)/len(t1)+2*3121.*np.cos(2*np.pi*15625.0*t1+0.86)/len(t1)+2*4970.2*np.cos(2*np.pi*18750*t1+0.9)/len(t1)+2*4388.3*np.cos(2*np.pi*18125*t1-2.18)/len(t1)+2*3813.1*np.cos(2*np.pi*17500*t1+1.58)/len(t1)##+2*4578.5*np.cos(2*np.pi*17187.5*t1-0.22)/len(t1)+2*3306.9*np.cos(2*np.pi*19687.5*t1+1.58)/len(t1)+2*3591.9*np.cos(2*np.pi*20312.5*t1-1.8)/len(t1)+2*4970.2*np.cos(2*np.pi*18750*t1+0.9)/len(t1)+2*4388.3*np.cos(2*np.pi*18125*t1-2.18)/len(t1)+2*3813.1*np.cos(2*np.pi*17500*t1+1.58)/len(t1)+2*3281.1*np.cos(2*np.pi*21250*t1-2.7)/len(t1)##+2*MAGS[1][1][0]*np.cos(2*np.pi*FREQS[1][1][0]*t1+PHAS[1][1][0])/len(t1) +2*MAGS[1][0][0]*np.cos(2*np.pi*FREQS[1][0][0]*t1+PHAS[1][0][0])/len(t1) ##+2*6416.*np.cos(2*np.pi*17812.5*t1-0.78)/len(t1)+2*6565.*np.cos(2*np.pi*18437.5*t1-1.36)/len(t1)+2*3665.*np.cos(2*np.pi*20312.5*t1-1.6)/len(t1)+2*3351.8*np.cos(2*np.pi*21250.0*t1-2.5)/len(t1)+2*3121.*np.cos(2*np.pi*15625.0*t1+0.86)/len(t1)+2*4578.5*np.cos(2*np.pi*17187.5*t1-0.22)/len(t1)##+2*6416.*np.cos(2*np.pi*17812.5*t1-0.78)/len(t1)
@@ -308,8 +319,8 @@ def main():
     ##3813.10819438 17500.0 1.58188922597
     ##4045.05555794 21875.0 -0.484227927918
     #print('Check: ', FREQS[1][3][0], FREQS[1][2][0], FREQS[1][1][0], FREQS[1][0][0])
-    magFFT = np.absolute(np.fft.rfft(osc))
-    frqs = np.fft.rfftfreq(len(osc), d=25E-9)
+    #magFFT = np.absolute(np.fft.rfft(osc))
+    #frqs = np.fft.rfftfreq(len(osc), d=25E-9)
 
     #fig6, axes6 = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
     #axes6[0].plot(t1, testWF)
@@ -321,7 +332,7 @@ def main():
         
     #fig4.show()
     #raw_input("ready to move on?")
-    input("ready to move on?")
+    #input("ready to move on?")
 
     #close_file(file0)
 

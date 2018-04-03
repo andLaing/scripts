@@ -85,6 +85,10 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
                 check_chan = input("Which channel number? [num/stop]")
                 while check_chan != 'stop':
                     indx = np.argwhere(sensors==int(check_chan))
+                    if len(indx) == 0:
+                        print('Channel not found')
+                        continue
+                    indx = indx[0][0]
 
                     plt.yscale('log')
                     plt.errorbar(binsE, specsE[indx], xerr=xerrE,
