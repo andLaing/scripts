@@ -5,12 +5,14 @@ from scipy.signal import find_peaks_cwt
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from functools import partial
-from pylab import cm
+#from pylab import cm
 
 #from JA_NEWCalibration.calib import responseWithDataPed
+from invisible_cities.icaro.hst_functions import display_matrix
 import invisible_cities.reco.spe_response as speR
 import invisible_cities.core.fit_functions as fitf
 from invisible_cities.database import load_db as DB
+import invisible_cities.io.channel_param_io as pIO
 
 from pmtCalFit import weighted_av_std
 
@@ -127,6 +129,14 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
 
     ## Loop over the specra:
     outData = []
+    outDict = {}
+    if not optimise:
+        fnam = {'ngau':'poisson_scaled_gaussians_ngau', 'intgau':'poisson_scaled_gaussians_min', 'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution'}
+        pOut = tb.open_file('sipmCalParOut_R'+str(run_no)+'_F'+func_name+'.h5', 'w')
+        param_writer = pIO.channel_param_writer(pOut,
+                                                sensor_type='sipm',
+                                                func_name=fnam[func_name],
+                                                param_names=pIO.generic_params)
     ## Extra protection since 3065 is weird
     knownDead = [ 3056, 8056, 14010, 25049 ]
     specialCheck = [1006, 1007, 3000, 3001, 5000, 7000, 22029, 28056, 28057]
@@ -142,6 +152,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
             valid_bins = np.argwhere(led>=min_stat)
             b1 = valid_bins[0][0]
             b2 = valid_bins[-1][0]
+        outDict[pIO.generic_params[-2]] = (bins[b1], bins[min(len(bins)-1, b2)])
         # Seed finding
         pD = find_peaks_cwt(dar, np.arange(2, 20), min_snr=2)
         if len(pD) == 0:
@@ -159,9 +170,12 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         errs = np.sqrt(dar[pD[0]-5:pD[0]+5])
         errs[errs==0] = 0.1
         gfitRes = fitf.fit(fitf.gauss, bins[pD[0]-5:pD[0]+5], dar[pD[0]-5:pD[0]+5], sd0, sigma=errs, bounds=gb0)
+        outDict[pIO.generic_params[2]] = (gfitRes.values[1], gfitRes.errors[1])
+        outDict[pIO.generic_params[3]] = (gfitRes.values[2], gfitRes.errors[2])
 
         ## Scale just in case we lost a different amount of integrals in dark and led
-        scale = led.sum() / dar.sum()
+        ## scale = led.sum() / dar.sum()
+        scale = 1
         if 'dfunc' in func_name:
             respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
                                      pedestal_mean=gfitRes.values[1],
@@ -199,24 +213,35 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
                       (bounds[1][0], bounds[1][1], bounds[1][2], 2.5)]
             rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], nseed, sigma=errs[b1:b2], bounds=nbound)
             chi = rfit.chi2
-        if not optimise:
-            if chNos[ich] in specialCheck or chi >= 10 or rfit.values[2] < 12 or rfit.values[3] > 3:
-                if chNos[ich] in specialCheck: print('Special check channel '+str(chNos[ich]))
-                print('Channel fit: ', rfit.values, chi)
-                plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
-                plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
-                plt.plot(bins[b1:b2], respF(bins[b1:b2], *seeds), 'g')
-                plt.title('Spe response fit to channel '+str(chNos[ich]))
-                plt.xlabel('ADC')
-                plt.ylabel('AU')
-                plt.show()
+        ## if not optimise:
+        ##     if chNos[ich] in specialCheck or chi >= 10 or rfit.values[2] < 12 or rfit.values[3] > 3:
+        ##         if chNos[ich] in specialCheck: print('Special check channel '+str(chNos[ich]))
+        ##         print('Channel fit: ', rfit.values, chi)
+        ##         plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
+        ##         plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
+        ##         plt.plot(bins[b1:b2], respF(bins[b1:b2], *seeds), 'g')
+        ##         plt.title('Spe response fit to channel '+str(chNos[ich]))
+        ##         plt.xlabel('ADC')
+        ##         plt.ylabel('AU')
+        ##         plt.show()
         outData.append([chNos[ich], rfit.values, rfit.errors, respF.n_gaussians, chi])
+        outDict[pIO.generic_params[0]] = (rfit.values[0], rfit.errors[0])
+        outDict[pIO.generic_params[1]] = (rfit.values[1], rfit.errors[1])
+        gIndx = 2
+        if 'gau' in func_name:
+            gaIndx = 4
+        outDict[pIO.generic_params[4]] = (rfit.values[gIndx], rfit.errors[gIndx])
+        outDict[pIO.generic_params[5]] = (rfit.values[gIndx+1], rfit.errors[gIndx+1])
+        outDict[pIO.generic_params[-1]] = (respF.n_gaussians, rfit.chi2)
+        if not optimise:
+            param_writer(chNos[ich], outDict)
 
     ## Couple of plots
     gainIndx = 2
     if 'gau' in func_name:
         gainIndx = 4
-   
+
+    plot_names = ["Gain", "1pe sigma", "Poisson mu", "chi2"]
     pVals = [np.fromiter((ch[1][gainIndx] for ch in outData), np.float),
              np.fromiter((ch[1][gainIndx+1] for ch in outData), np.float),
              np.fromiter((ch[1][1] for ch in outData), np.float),
@@ -224,10 +249,32 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     if optimise:
         sipmIn.close()
         return pVals
+    pOut.close()
 
-    global scalerChis
-    ## pos_x = DB.DataSiPM(run_no).X.values
-    ## pos_y = DB.DataSiPM(run_no).Y.values
+    #global scalerChis
+    pos_x = DB.DataSiPM(run_no).X.values
+    pos_y = DB.DataSiPM(run_no).Y.values
+    chNos = DB.DataSiPM(run_no).SensorID.values
+    ## vals2D = np.zeros((int((pos_x.max()-pos_x.min())/10)+1, int((pos_y.max()-pos_y.min())/10)+1))
+    ## print('shape: ', vals2D.shape)
+    ## *_, chis = display_matrix(pos_x, pos_y, pVals[3])
+    ## Trampa
+    #pVals[3][pVals[3]>10] = 0
+    plt.scatter(pos_x, pos_y, c=pVals[3])
+    plt.title("Fit chi^2 map")
+    plt.xlabel("X (mm)")
+    plt.ylabel("Y (mm)")
+    plt.colorbar()
+    plt.show()
+    #mask = np.argwhere((pVals[2]>=2) & (pVals[2]<8))
+    mask = np.argwhere((chNos<9000) | (chNos>=11000))
+    plt.scatter(pos_x[mask], pos_y[mask], c=pVals[2][mask])
+    ##plt.scatter(pos_x, pos_y, c=pVals[2])
+    plt.title("Fit poisson mu")
+    plt.xlabel("X (mm)")
+    plt.ylabel("Y (mm)")
+    plt.colorbar()
+    plt.show()
     ## fg2, ax2 = plt.subplots()
     ## p = ax2.pcolor(pos_x, pos_y, scalerChis, cmap=cm.Spectral, vmin=np.abs(scalerChis).min(), vmax=np.abs(scalerChis).max())
     ## plt.colorbar(p, ax=ax2)
@@ -235,15 +282,16 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     #plt.hist(scalerChis, bins=1000)
     #plt.show()
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
-    for ax, val in zip(axes.flatten(), pVals):
+    for ax, val, nm in zip(axes.flatten(), pVals, plot_names):
         ax.hist(val, bins=100)
+        ax.set_title(nm)
     fig.show()
     input('finished with plots?')
 
-    with open(file_name[:-3]+'_Fit_'+func_name+'.dat', 'w') as dbF:
-        dbF.write('Minimum statistics: '+str(min_stat)+'\n\n')
-        for vals in outData:
-            dbF.write(str(vals)+'\n')
+    ## with open(file_name[:-3]+'_Fit_'+func_name+'.dat', 'w') as dbF:
+    ##     dbF.write('Minimum statistics: '+str(min_stat)+'\n\n')
+    ##     for vals in outData:
+    ##         dbF.write(str(vals)+'\n')
         
 
 if __name__ == '__main__':

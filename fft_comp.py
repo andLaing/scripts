@@ -19,7 +19,7 @@ def main():
     b, a = signal.butter(1, freqLPFd, 'low', analog=False)
     ##
 
-    DataPMT = load_db.DataPMT(4723)
+    DataPMT = load_db.DataPMT(4821)
     
     defsDone = False
     with load_input(sys.argv[1]) as file0:

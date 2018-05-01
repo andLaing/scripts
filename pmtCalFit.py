@@ -142,7 +142,14 @@ def main():
                                             sensor_type='pmt',
                                             func_name=fnam[funcName],
                                             param_names=pIO.generic_params)
+    test_names = ['normalization', 'Pedestal', 'Pedestal_sig']
+    pTest_writer = pIO.channel_param_writer(pOut,
+                                            sensor_type='pmt',
+                                            func_name='Pedestal_gaussian',
+                                            param_names=test_names,
+                                            covariance=(3, 3))
     outDict = {}
+    testDict = {}
     for i, (dspec, lspec) in enumerate(zip(specsD, specsL)):
 
         b1 = 0
@@ -163,6 +170,12 @@ def main():
         gfitRes = fitf.fit(fitf.gauss, bins, dspec, sd0, sigma=errs, bounds=gb0)
         outDict[pIO.generic_params[2]] = (gfitRes.values[1], gfitRes.errors[1])
         outDict[pIO.generic_params[3]] = (gfitRes.values[2], gfitRes.errors[2])
+
+        testDict[test_names[0]] = (gfitRes.values[0], gfitRes.errors[0])
+        testDict[test_names[1]] = (gfitRes.values[1], gfitRes.errors[1])
+        testDict[test_names[2]] = (gfitRes.values[2], gfitRes.errors[2])
+        testDict["covariance"]  = gfitRes.cov
+        pTest_writer(i, testDict)
 
         ## Scale just in case we lost a different amount of integrals in dark and led
         scale = lspec.sum() / dspec.sum()
