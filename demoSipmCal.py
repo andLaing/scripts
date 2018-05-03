@@ -69,12 +69,21 @@ def fit_dataset():
     ffunc = partial(speR.scaled_dark_pedestal, min_integral=100)
 
     ## This needs to be from a DB or some tempory mapping!!
-    chNos = DB.DataSiPM(5166).SensorID.values
+    if 'Sensors' in sipmIn.root:
+        atcaNos = np.fromiter((x['channel'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
+        chNos   = np.fromiter((x['sensorID'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
+        if not chNos.any():
+            chns = DB.DataSiPM(5166).ChannelID
+            chNos = np.fromiter((dats.loc[chns == x, 'SensorID'] for x in atcaNos), np.int)
+    else:
+        print('No sensor info in file, assuming DB ordering for run 5166')
+        atcaNos = DB.DataSiPM(5166).ChannelID.values
+        chNos = DB.DataSiPM(5166).SensorID.values
     n0 = ['Normalization', 'norm error', 'poisson mu', 'poisson error', 'Pedestal', 'pedestal error', 'Pedestal sigma', 'ped sig error', 'gain', 'gain error', 'gain sigma', 'gain sig error', 'chi2']
     outData = []
 
     for ich, (led, dar) in enumerate(zip(specsL, specsD)):
-        print('channel index = ', ich, chNos[ich])
+        print('channel index = ', ich, ', sensor: ', chNos[ich], ', atca: ', atcaNos[ich])
         channelRes = [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
 
         plt.cla()
@@ -88,7 +97,7 @@ def fit_dataset():
         if avL - avD < 1.0:
             plt.bar(bins, led, width=1)
             plt.bar(bins, dar, width=1)
-            plt.title('Spe dark and led spectra for channel '+str(chNos[ich]))
+            plt.title('Spe dark and led spectra for sensor '+str(chNos[ich])+', atca '+str(atcaNos[ich]))
             plt.xlabel('ADC')
             plt.ylabel('AU')
             plt.draw()
@@ -160,7 +169,7 @@ def fit_dataset():
             plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
             plt.plot(bins[b1:b2], respF(bins[b1:b2], *rfit.values), 'r')
             plt.plot(bins[b1:b2], respF(bins[b1:b2], *seeds), 'g')
-            plt.title('Spe response fit to channel '+str(chNos[ich]))
+            plt.title('Spe response fit to sensor '+str(chNos[ich])+', atca '+str(atcaNos[ich]))
             plt.xlabel('ADC')
             plt.ylabel('AU')
             plt.draw()
