@@ -72,7 +72,7 @@ def fit_dataset():
     if 'Sensors' in sipmIn.root:
         atcaNos = np.fromiter((x['channel'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
         chNos   = np.fromiter((x['sensorID'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
-        if not chNos.any():
+        if np.all(chNos == -1):
             chns = DB.DataSiPM(5166).ChannelID
             chNos = np.fromiter((dats.loc[chns == x, 'SensorID'] for x in atcaNos), np.int)
     else:
