@@ -73,7 +73,8 @@ def fit_dataset():
         atcaNos = np.fromiter((x['channel'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
         chNos   = np.fromiter((x['sensorID'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
         if np.all(chNos == -1):
-            chns = DB.DataSiPM(5166).ChannelID
+            dats = DB.DataSiPM(5166)
+            chns = dats.ChannelID
             chNos = np.fromiter((dats.loc[chns == x, 'SensorID'] for x in atcaNos), np.int)
     else:
         print('No sensor info in file, assuming DB ordering for run 5166')
