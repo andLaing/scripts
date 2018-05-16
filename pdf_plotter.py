@@ -16,8 +16,8 @@ def plot_pdfs():
 
     with tb.open_file(file_name, 'r') as sipmIn:
         
-        bins = sipmIn.get_node('/HIST/', pdf_type+'_bins')
-        pdfs = sipmIn.get_node('/HIST/', pdf_type)
+        bins = np.array(sipmIn.get_node('/HIST/', pdf_type+'_bins'))
+        pdfs = np.array(sipmIn.get_node('/HIST/', pdf_type)).sum(axis=0)
 
         if 'Sensors' in sipmIn.root:
             atcaNos = np.fromiter((x['channel'] for x in sipmIn.root.Sensors.DataSiPM), np.int)
@@ -31,7 +31,7 @@ def plot_pdfs():
             atcaNos = DB.DataSiPM(5166).ChannelID.values
             chNos = DB.DataSiPM(5166).SensorID.values
 
-        for pdf in pdfs:
+        for ich, pdf in enumerate(pdfs):
 
             plt.cla()
             plt.ion()

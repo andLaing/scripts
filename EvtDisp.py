@@ -6,16 +6,17 @@ import matplotlib.pyplot as plt
 import tables as tb
 
 
-#grp1 = [ 1, 4, 5, 8, 9 ]
-#grp2 = [ 18, 19, 22, 23, 30, 31 ]
+grp1 = [ 1, 4, 5, 8, 9 ]
+grp2 = [ 18, 19, 22, 23, 30, 31 ]
+grp3 = []
 #grp1 = [ 0, 1, 4, 5, 6, 7 ]
 #grp2 = [ 12, 13, 16, 17, 18, 19 ]
 #grp1 = [ 0, 1, 12, 13, 16, 17 ]
 #grp2 = [ 6, 7, 18, 19 ]
 #grp3 = [ 4, 5 ]
-grp1 = [ 0,  1, 4, 16, 17, 24 ]
-grp2 = [ 12, 13, 28, 29 ]
-grp3 = [ 8, 9 ]
+## grp1 = [ 0,  1, 4, 16, 17, 24 ]
+## grp2 = [ 12, 13, 28, 29 ]
+## grp3 = [ 8, 9 ]
 
 def main():
 
@@ -34,9 +35,10 @@ def main():
     ##
     ftAbsSave = np.empty(1)
     ##
+    pms = [18, 22, 19, 23, 9, 8, 5, 4, 1, 31, 30, 0]
     with tb.open_file( fName, 'r' ) as dataF:
     
-        npm = len(dataF.root.Sensors.DataPMT)
+        npm = 12#len(dataF.root.Sensors.DataPMT)
         nevt = len(dataF.root.RD.pmtrwf)
 
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20,6))
@@ -65,7 +67,7 @@ def main():
                 ft_mag = np.absolute(ft)
                 ##
                 
-                pmID = dataF.root.Sensors.DataPMT[ipm][0]
+                pmID = pms[ipm]#dataF.root.Sensors.DataPMT[ipm][0]
 
                 if not grp1Setter and  pmID in grp1:
                     ftAbsSave = ft_mag
