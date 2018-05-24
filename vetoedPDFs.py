@@ -26,7 +26,7 @@ def generate_pdfs():
     raw_file_base  = sys.argv[3]
 
     pmap_files = sorted(glob(pmap_file_base+'*.h5'))## Might not be enough
-    hit_files  = sorted(glob(hit_file_base+'*.h5'))## Might not be enough
+    ##hit_files  = sorted(glob(hit_file_base+'*.h5'))## Might not be enough
     raw_files  = sorted(glob(raw_file_base+'*.h5'))## Might not be enough
 
     ## Details of raw waveforms to aid vetoing (assumes all same in run)
