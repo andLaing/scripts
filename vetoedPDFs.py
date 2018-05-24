@@ -1,4 +1,6 @@
 import sys
+import tables as tb
+import numpy as np
 from glob import glob
 from functools import partial
 
