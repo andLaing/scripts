@@ -60,7 +60,7 @@ def generate_pdfs():
     ## output
     histbins = np.arange(-10, 1000, 0.1)
     bin_centres = shift_to_bin_centers(histbins)
-    pdf_out = tb.open_file('vetoedPDFs_R'+str(run_no)+'.h5', 'r')
+    pdf_out = tb.open_file('vetoedPDFs_R'+str(run_no)+'.h5', 'w')
     HIST = partial(hist_writer,
                    pdf_out,
                    group_name  = 'HIST',
