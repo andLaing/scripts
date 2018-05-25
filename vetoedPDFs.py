@@ -84,6 +84,7 @@ def generate_pdfs():
             indx = np.argwhere(revent_nos==reduced_pulse_info[mask_counter][0])
             print(indx, indx[0][0])
             while indx.shape[0] != 0:
+                print(indx[0][0])
                 rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
                 cwf = csf.sipm_processing["subtract_mode_calibrate"](rwf, sipm_gains)
 
