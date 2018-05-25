@@ -81,6 +81,7 @@ def generate_pdfs():
             revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
 
             indx = np.argwhere(revent_nos==reduced_pulse_info[mask_counter][0])
+            print(indx, indx[0][0])
             while indx.shape[0] != 0:
                 rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
                 cwf = csf.sipm_processing["subtract_mode_calibrate"](rwf, sipm_gains)
@@ -91,6 +92,7 @@ def generate_pdfs():
 
                 mask_counter += 1
                 indx = revent_nos==reduced_pulse_info[mask_counter][0]
+                print(indx, indx[0][0])
 
     full_spec(hist_full_spec)
     z_vetoed(hist_z_vetoed)
