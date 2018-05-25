@@ -6,6 +6,7 @@ from functools import partial
 
 from invisible_cities.core.system_of_units_c import      units
 from invisible_cities.io.pmaps_io            import load_pmaps
+from invisible_cities.calib                  import calib_functions         as cf
 from invisible_cities.reco                   import calib_sensors_functions as csf
 from invisible_cities.database               import load_db                 as DB
 from invisible_cities.io.hist_io             import hist_writer
