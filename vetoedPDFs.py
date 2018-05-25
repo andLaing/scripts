@@ -79,7 +79,7 @@ def generate_pdfs():
         with tb.open_file(rawf) as raw_in:
             revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
 
-            indx = revent_nos==reduced_pulse_info[mask_counter][0]
+            indx = np.argwhere(revent_nos==reduced_pulse_info[mask_counter][0])
             while indx.shape[0] != 0:
                 rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
                 cwf = csf.sipm_processing["subtract_mode_calibrate"](rwf, sipm_gains)
