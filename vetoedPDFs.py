@@ -77,6 +77,7 @@ def generate_pdfs():
 
     mask_counter = 0
     for rawf in raw_files:
+        print(rawf)
         with tb.open_file(rawf) as raw_in:
             revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
 
