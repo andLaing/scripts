@@ -93,7 +93,7 @@ def generate_pdfs():
                                                    histbins)
 
                 mask_counter += 1
-                indx = revent_nos==reduced_pulse_info[mask_counter][0]
+                indx = np.argwhere(revent_nos==reduced_pulse_info[mask_counter][0])
                 #print(indx, indx[0][0])
 
     full_spec(hist_full_spec)
