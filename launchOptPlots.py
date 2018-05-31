@@ -7,7 +7,8 @@ start_or_end_fixed = sys.argv[1]
 point = sys.argv[2]
 run_num = sys.argv[3]
 
-file_base = '/calibration/pmtCal_2018/spectra/intOpt/pmtCalOptR'+run_num+'_start'
+#file_base = '/calibration/pmtCal_2018/spectra/intOpt/pmtCalOptR'+run_num+'_start'
+file_base = '../outdats/pmtCalOptR'+run_num+'_start'
 if 'start' in start_or_end_fixed:
     file_base += point+'_wid*.h5'
 elif 'end' in start_or_end_fixed:
