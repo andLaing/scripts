@@ -89,6 +89,8 @@ def generate_pdfs():
     mask_counter = 0
     for rawf in raw_files:
         print(rawf)
+        if mask_counter >= len(reduced_pulse_info):
+            continue
         with tb.open_file(rawf) as raw_in:
             revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
 
@@ -121,8 +123,12 @@ def generate_pdfs():
                                                       histbins)
 
                 mask_counter += 1
-                evt_no = reduced_pulse_info[mask_counter][0]
-                indx = np.argwhere(revent_nos==evt_no)
+                if mask_counter < len(reduced_pulse_info):
+                    evt_no = reduced_pulse_info[mask_counter][0]
+                    indx = np.argwhere(revent_nos==evt_no)
+                else:
+                    ## dummy evt_no to definitely give no info
+                    indx = np.argwhere(revent_nos==-100)
                 #print(indx, indx[0][0])
 
     full_spec(hist_full_spec)
@@ -142,7 +148,6 @@ def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
                           (xy[:,1] > hit_pos[1] - n_ring * pitch))
 
     ## Forces out of the histo range (or not if you have weird ranges)
-    print(cwf.shape, veto_indcs[0].shape, z_veto.shape, np.invert(z_veto).shape)
     cwf[veto_indcs[0]][:, np.invert(z_veto)] = -100000
     return cwf
     
