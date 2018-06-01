@@ -46,19 +46,19 @@ def generate_pdfs():
     ## Start assuming KR data and Kdst
     ## For each event [evt_no, list tuples start and end veto areas]
     reduced_pulse_info = []
-    print(wf_range.shape, wf_range)
     for pmf in pmap_files:
         pmap_dict = load_pmaps(pmf)
 
         for key, pmap in pmap_dict.items():
             mask_list = []
             for s1 in pmap.s1s:
-                mask_list.append(wf_range < s1.times[0]  / units.mus - 1)
-                mask_list.append(wf_range > s1.times[-1] / units.mus + 1)
+                #print(s1.times[0]  / units.mus - 1)
+                mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
+                                 (wf_range > s1.times[-1] / units.mus + 1) )
             for s2 in pmap.s2s:
-                mask_list.append(wf_range < s2.times[0]  / units.mus - 2)
-                mask_list.append(wf_range > s2.times[-1] / units.mus + 2)
-            reduced_pulse_info.append([key, np.logical_or.reduce(mask_list)])
+                mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
+                                 (wf_range > s2.times[-1] / units.mus + 2) )
+            reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
 
     dst_frame = load_dsts(hit_files, 'DST', 'Events')
     hit_positions = dst_frame[['event', 'X', 'Y']].values
