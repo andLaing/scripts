@@ -141,7 +141,7 @@ def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
                           (xy[:,1] > hit_pos[1] - n_ring * pitch))
 
     ## Forces out of the histo range (or not if you have weird ranges)
-    print(cwf.shape, veto_indcs[0], z_veto.shape)
+    print(cwf.shape, veto_indcs[0].shape, z_veto.shape, np.invert(z_veto).shape)
     cwf[veto_indcs[0], np.invert(z_veto)] = -100000
     return cwf
     
