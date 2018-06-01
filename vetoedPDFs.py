@@ -74,9 +74,9 @@ def generate_pdfs():
                    bin_centres = bin_centres)
     full_spec = HIST(table_name  = 'full_spec')
     z_vetoed  = HIST(table_name  = 'z_vetoed')
-    1_ring    = HIST(table_name  = '1_ring_vetoed')
-    2_ring    = HIST(table_name  = '2_ring_vetoed')
-    3_ring    = HIST(table_name  = '3_ring_vetoed')
+    one_ring    = HIST(table_name  = 'one_ring_vetoed')
+    two_ring    = HIST(table_name  = 'two_ring_vetoed')
+    thr_ring    = HIST(table_name  = 'thr_ring_vetoed')
     ## empty arrays for histograms
     shape = 1792, len(bin_centres)
     hist_full_spec = np.zeros(shape, dtype=np.int)
@@ -125,9 +125,9 @@ def generate_pdfs():
 
     full_spec(hist_full_spec)
     z_vetoed(hist_z_vetoed)
-    1_ring(hist_1_vetoed)
-    2_ring(hist_2_vetoed)
-    3_ring(hist_3_vetoed)
+    one_ring(hist_1_vetoed)
+    two_ring(hist_2_vetoed)
+    thr_ring(hist_3_vetoed)
     pdf_out.close()
 
 
