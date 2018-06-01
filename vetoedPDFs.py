@@ -105,17 +105,17 @@ def generate_pdfs():
 
                 dst_indx = np.argwhere(hit_positions[:, 0]==evt_no)
                 if dst_indx.shape[0] != 0:
-                    print(hit_positions[dst_indx[0][0], 1:])
+                    hit_p = hit_positions[dst_indx[0][0], 1:]
                     hist_1_vetoed += cf.bin_waveforms(ring_veto(cwf, 1, z_veto,
-                                                                hit_positions[dst_indx, 1:],
+                                                                hit_p,
                                                                 sipm_xy),
                                                       histbins)
                     hist_2_vetoed += cf.bin_waveforms(ring_veto(cwf, 2, z_veto,
-                                                                hit_positions[dst_indx, 1:],
+                                                                hit_p,
                                                                 sipm_xy),
                                                       histbins)
                     hist_3_vetoed += cf.bin_waveforms(ring_veto(cwf, 3, z_veto,
-                                                                hit_positions[dst_indx, 1:],
+                                                                hit_p,
                                                                 sipm_xy),
                                                       histbins)
 
