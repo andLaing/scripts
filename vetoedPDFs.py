@@ -42,10 +42,11 @@ def generate_pdfs():
     ## Gains and sensor positions
     sipm_gains = DB.DataSiPM(run_no).adc_to_pes.values
     sipm_xy    = DB.DataSiPM(run_no)[['X', 'Y']].values
-
+    
     ## Start assuming KR data and Kdst
     ## For each event [evt_no, list tuples start and end veto areas]
     reduced_pulse_info = []
+    print(wf_range.shape, wf_range)
     for pmf in pmap_files:
         pmap_dict = load_pmaps(pmf)
 
