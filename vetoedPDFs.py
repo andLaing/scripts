@@ -78,7 +78,11 @@ def generate_pdfs():
         reduced_pulse_info = []
         for pmf in pmap_files:
             print(pmf)
-            pmap_dict = load_pmaps(pmf)
+            try:
+                pmap_dict = load_pmaps(pmf)
+            except (ValueError, tb.exceptions.NoSuchNodeError):
+                print("Empty file. Skipping.")
+                continue
 
             for key, pmap in pmap_dict.items():
                 mask_list = []
@@ -143,6 +147,21 @@ def generate_pdfs():
         thr_ring(hist_3_vetoed)
     #pdf_out.close()
 
+
+def sorter_func(base_name):
+    def sorting_func(elem):
+        """
+        Forces sort according to file number.
+        """
+        start_num = elem.split(base_name)[1]
+
+        dot_dist = start_num.find('.')
+        bar_dist = start_num.find('_')
+        num_len = min(dot_dist, bar_dist)
+        if num_len < 0:
+            num_len = max(dot_dist, bar_dist)
+        return int(start_num[0:num_len])
+        
 
 def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
 
