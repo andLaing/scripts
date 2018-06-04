@@ -177,13 +177,19 @@ def comparison_plots(fileNames, funcName, min_stat, limit_ped):
                   'Gain vs. channel number',
                   '1pe sigma vs. channel number',
                   'Fit chi^2', 'Legend']
-    chNos = np.arange(12)
+    chNosAll = np.arange(12)
+    chNos_temp = np.array([0, 1, 2, 3,4, 5, 6, 7, 8, 10, 11])
     run_nos = [f[f.find('R')+1:f.find('R')+5] for f in fileNames]
     run_nos = [run+'MAU' if f.find('Mau') != -1 else run for f, run in zip(fileNames, run_nos)]
     
     fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20,6))
     #cm = plt.get_cmap('gist_rainbow')
-    for j, (vals, run) in enumerate(zip(fResults, run_nos)):
+    for j, (vals1, run) in enumerate(zip(fResults, run_nos)):
+        chNos = chNosAll
+        vals = vals1
+        if '4819' in run:
+            chNos = chNos_temp
+            vals = vals1[:-1]
         for k, (ax, axtit) in enumerate(zip(axes.flatten(), axistitles)):
             if j == 0:
                 #ax.set_prop_cycle(cycler('color', [cm(1.*i/vals.shape[0]) for i in range(vals.shape[0])]))
