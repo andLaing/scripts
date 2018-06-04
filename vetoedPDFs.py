@@ -161,6 +161,7 @@ def sorter_func(base_name):
         if num_len < 0:
             num_len = max(dot_dist, bar_dist)
         return int(start_num[0:num_len])
+    return sorting_func
         
 
 def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
