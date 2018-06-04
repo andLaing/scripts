@@ -74,8 +74,10 @@ def generate_pdfs():
         hit_positions = load_dsts(hit_files, 'DST', 'Events')[['event', 'X', 'Y']].values
         ## Start assuming KR data and Kdst
         ## For each event [evt_no, list tuples start and end veto areas]
+        print('here1')
         reduced_pulse_info = []
         for pmf in pmap_files:
+            print(pmf)
             pmap_dict = load_pmaps(pmf)
 
             for key, pmap in pmap_dict.items():
