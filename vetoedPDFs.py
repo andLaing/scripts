@@ -31,8 +31,8 @@ def generate_pdfs():
 
     pmap_sorter = sorter_func(pmap_file_base)
     pmap_files = sorted(glob(pmap_file_base+'*.h5'), key=pmap_sorter)
-    hit_sorter = sorter_func(hit_file_base)
-    hit_files  = sorted(glob(hit_file_base+'*.h5'), key=hit_sorter)
+    #hit_sorter = sorter_func(hit_file_base)
+    hit_files  = sorted(glob(hit_file_base+'*.h5'))#, key=hit_sorter)
     raw_sorter = sorter_func(raw_file_base)
     raw_files  = sorted(glob(raw_file_base+'*.h5'), key=raw_sorter)
 
