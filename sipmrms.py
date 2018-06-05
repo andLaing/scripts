@@ -16,6 +16,7 @@ def sipm_rms():
     rmss = []
 
     for file_name in iglob(file_base+'*.h5'):
+        print('File: ', file_name)
         with tb.open_file(file_name) as dataIn:
 
             try:
