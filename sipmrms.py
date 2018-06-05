@@ -47,7 +47,7 @@ def sipm_rms():
 
         read_start = idef * 4
         read_end   = read_start + len(figs[-1][1])
-        for j, (rms, ax) in enumerate(zip(rmss[read_start:read_end], figs[-1][1])):
+        for j, (rms, ax) in enumerate(zip(rmss[read_start:read_end], figs[-1][1].flatten())):
             ax.hist(rms)
             ax.set_title('Pedestal RMS for DICE '+str(read_start + j + 1))
             ax.set_xlabel('Baseline RMS (ADC)')
