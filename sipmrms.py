@@ -46,7 +46,7 @@ def sipm_rms():
         figs.append(plt.subplots(nrows=2,ncols=2, figsize=(10,10)))
 
         read_start = idef * 4
-        read_end   = read_start + len(figs[-1][1])
+        read_end   = read_start + len(figs[-1][1].flatten())
         for j, (rms, ax) in enumerate(zip(rmss[read_start:read_end], figs[-1][1].flatten())):
             ax.hist(rms)
             ax.set_title('Pedestal RMS for DICE '+str(read_start + j + 1))
