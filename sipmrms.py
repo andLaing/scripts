@@ -15,6 +15,7 @@ def sipm_rms():
 
     rmss = []
 
+    evt_no = 0
     for file_name in iglob(file_base+'*.h5'):
         print('File: ', file_name)
         with tb.open_file(file_name) as dataIn:
@@ -30,6 +31,9 @@ def sipm_rms():
 
             chNos = dataIn.root.Sensors.DataSiPM[:]['sensorID']
             for evtrwf in sipmrwf:
+                evt_no += 1
+                if evt_no % 100 == 0:
+                    print('event count: ', evt_no)
                 for chNo, rwf in zip(chNos, evtrwf):
 
                     rms = np.std(rwf, ddof=1)

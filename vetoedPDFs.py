@@ -157,12 +157,13 @@ def sorter_func(base_name):
         Forces sort according to file number.
         """
         start_num = elem.split(base_name)[1]
-
+        print(start_num)
         dot_dist = start_num.find('.')
         bar_dist = start_num.find('_')
         num_len = min(dot_dist, bar_dist)
         if num_len < 0:
             num_len = max(dot_dist, bar_dist)
+        print(dot_dist, bar_dist, num_len)
         return int(start_num[0:num_len])
     return sorting_func
         
