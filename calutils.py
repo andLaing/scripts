@@ -22,12 +22,16 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
     and dark current runs and have the user classify
     channels with little difference """
 
-    sensors = np.array(DB.DataSiPM(int(RUN_NO)).SensorID)
+    sensors = DB.DataSiPM(int(RUN_NO)).SensorID.values
 
     with tb.open_file(elec_name, 'r') as eFile, \
          tb.open_file(dark_name, 'r') as dFile:
 
         min_incr = 0.5
+
+        if 'HIST' not in eFile.root:
+            print('Error, this check requires spectra')
+            exit()
 
         binsE = np.array(eFile.root.HIST.sipm_dark_bins)
         binsD = np.array(dFile.root.HIST.sipm_dark_bins)
@@ -111,6 +115,48 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
                     check_chan = input("Another channel? [num/stop]")
     return
 
+
+def sipm_rms_check(wf_file):
+    """
+    Simple comparison of raw waveform rms
+    to see if we have bad connections
+    """
+
+    with tb.open_file(wf_file, 'r') as data:
+
+        bad_log = {}
+
+        try:
+            sipmrwf = data.root.RD.sipmrwf
+        except tb.NoSuchNodeError:
+            print('No raw wafeforms in file')
+            exit()
+
+        ch_nums = [[si['channel'], si['sensorID']] for si in data.root.Sensors.DataSiPM]
+
+        for evt, tp in enumerate(sipmrwf):
+            print('Checking event ', evt)
+            for chNo, sipm in zip(ch_nums, tp):
+                rms = np.std(sipm, ddof=1)
+
+                if rms < 0.5:
+                    plt.plot(sipm)
+                    plt.title('Raw waveform for atca ch '+str(chNo[0])+', sensor id '+str(chNo[1]))
+                    plt.xlabel('Sample number')
+                    plt.ylabel('ADC')
+                    plt.show(block=False)
+
+                    clif = input("How do you classify this channel? [OK/bad] ")
+                    if 'bad' in clif:
+                        if evt in bad_log:
+                            bad_log[evt] = [chNo[1]]
+                        else:
+                            bad_log[evt].append(chNo[1])
+
+        print('bad channel summary')
+        for bkey in bad_log.keys():
+            print('Event ', bkey, ' channels ', bad_log[bkey])
+                    
 
 def display_pmt_fits(spectra_file):
 
