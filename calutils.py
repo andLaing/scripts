@@ -139,7 +139,7 @@ def sipm_rms_check(wf_file):
             for chNo, sipm in zip(ch_nums, tp):
                 rms = np.std(sipm, ddof=1)
 
-                if rms < 0.5:
+                if rms < 3.0:
                     plt.plot(sipm)
                     plt.title('Raw waveform for atca ch '+str(chNo[0])+', sensor id '+str(chNo[1]))
                     plt.xlabel('Sample number')
