@@ -28,7 +28,7 @@ def sipm_rms():
                 rmss = [ [] for i in range(sipmrwf.shape[1]//64) ]
 
             chNos = dataIn.root.Sensors.DataSiPM[:]['sensorID']
-            for evt, evtrwf in sipmrwf:
+            for evtrwf in sipmrwf:
                 for chNo, rwf in zip(chNos, evtrwf):
 
                     rms = np.std(rwf, ddof=1)
