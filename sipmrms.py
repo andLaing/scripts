@@ -6,7 +6,7 @@ import tables as tb
 from glob import iglob
 
 
-def sipm_rms()
+def sipm_rms():
     """
     Calculate rms for each sipm DICE
     """
