@@ -103,45 +103,49 @@ def generate_pdfs():
             print(rawf)
             if mask_counter >= len(reduced_pulse_info):
                 continue
-            with tb.open_file(rawf) as raw_in:
-                revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
-
-                evt_no = reduced_pulse_info[mask_counter][0]
-                indx = np.argwhere(revent_nos==evt_no)
-                #print(indx, indx[0][0])
-                while indx.shape[0] != 0:
-                    #print(indx[0][0])
-                    #rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
-                    cwf = csf.sipm_processing["subtract_mode_calibrate"](raw_in.root.RD.sipmrwf[indx[0][0]], sipm_gains)
-
-                    hist_full_spec += cf.bin_waveforms(cwf, histbins)
-                    z_veto = reduced_pulse_info[mask_counter][1]
-                    hist_z_vetoed  += cf.bin_waveforms(cwf[:, z_veto], histbins)
-
-                    dst_indx = np.argwhere(hit_positions[:, 0]==evt_no)
-                    if dst_indx.shape[0] != 0:
-                        hit_p = hit_positions[dst_indx[0][0], 1:]
-                        hist_1_vetoed += cf.bin_waveforms(ring_veto(cwf, 1, z_veto,
-                                                                    hit_p,
-                                                                    sipm_xy),
-                                                          histbins)
-                        hist_2_vetoed += cf.bin_waveforms(ring_veto(cwf, 2, z_veto,
-                                                                    hit_p,
-                                                                    sipm_xy),
-                                                          histbins)
-                        hist_3_vetoed += cf.bin_waveforms(ring_veto(cwf, 3, z_veto,
-                                                                    hit_p,
-                                                                    sipm_xy),
-                                                          histbins)
-
-                    mask_counter += 1
-                    if mask_counter < len(reduced_pulse_info):
-                        evt_no = reduced_pulse_info[mask_counter][0]
-                        indx = np.argwhere(revent_nos==evt_no)
-                    else:
-                        ## dummy evt_no to definitely give no info
-                        indx = np.argwhere(revent_nos==-100)
+            try:
+                with tb.open_file(rawf) as raw_in:
+                    revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
+                    
+                    evt_no = reduced_pulse_info[mask_counter][0]
+                    indx = np.argwhere(revent_nos==evt_no)
                     #print(indx, indx[0][0])
+                    while indx.shape[0] != 0:
+                        #print(indx[0][0])
+                        #rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
+                        cwf = csf.sipm_processing["subtract_mode_calibrate"](raw_in.root.RD.sipmrwf[indx[0][0]], sipm_gains)
+                        
+                        hist_full_spec += cf.bin_waveforms(cwf, histbins)
+                        z_veto = reduced_pulse_info[mask_counter][1]
+                        hist_z_vetoed  += cf.bin_waveforms(cwf[:, z_veto], histbins)
+
+                        dst_indx = np.argwhere(hit_positions[:, 0]==evt_no)
+                        if dst_indx.shape[0] != 0:
+                            hit_p = hit_positions[dst_indx[0][0], 1:]
+                            hist_1_vetoed += cf.bin_waveforms(ring_veto(cwf, 1, z_veto,
+                                                                        hit_p,
+                                                                        sipm_xy),
+                                                            histbins)
+                            hist_2_vetoed += cf.bin_waveforms(ring_veto(cwf, 2, z_veto,
+                                                                        hit_p,
+                                                                        sipm_xy),
+                                                            histbins)
+                            hist_3_vetoed += cf.bin_waveforms(ring_veto(cwf, 3, z_veto,
+                                                                        hit_p,
+                                                                        sipm_xy),
+                                                            histbins)
+
+                        mask_counter += 1
+                        if mask_counter < len(reduced_pulse_info):
+                            evt_no = reduced_pulse_info[mask_counter][0]
+                            indx = np.argwhere(revent_nos==evt_no)
+                        else:
+                            ## dummy evt_no to definitely give no info
+                            indx = np.argwhere(revent_nos==-100)
+                        #print(indx, indx[0][0])
+            except tb.HDF5ExtError:
+                print('corrupt file')
+                continue
 
         full_spec(hist_full_spec)
         z_vetoed(hist_z_vetoed)
