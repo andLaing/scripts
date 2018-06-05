@@ -122,6 +122,9 @@ def sipm_rms_check(wf_file):
     to see if we have bad connections
     """
 
+    ## Not great but since big variation in rms between DICES
+    dice_rms_mins = [2.2, 2.0, 2.1, 2.0, 3.5, 3.1, 2.7, 2.5, 3.3, 2.8, 2.5, 2.6, 1.9, 2.4, 2.2, 2.1, 3.6, 3.3, 2.6, 2.5, 3.0, 2.7, 2.3, 2.5, 2.0, 2.3, 2.1, 2.1]
+
     with tb.open_file(wf_file, 'r') as data:
 
         bad_log = {}
@@ -139,7 +142,7 @@ def sipm_rms_check(wf_file):
             for chNo, sipm in zip(ch_nums, tp):
                 rms = np.std(sipm, ddof=1)
 
-                if rms < 3.0:
+                if rms < dice_rms_mins[chNo[1] // 1000 -1]:
                     plt.plot(sipm)
                     plt.title('Raw waveform for atca ch '+str(chNo[0])+', sensor id '+str(chNo[1]))
                     plt.xlabel('Sample number')
@@ -147,8 +150,13 @@ def sipm_rms_check(wf_file):
                     plt.show(block=False)
 
                     clif = input("How do you classify this channel? [OK/bad] ")
+                    plt.clf()
+                    plt.close()
+                    if 'q' in clif:
+                        exit()
+                        
                     if 'bad' in clif:
-                        if evt in bad_log:
+                        if evt not in bad_log.keys():
                             bad_log[evt] = [chNo[1]]
                         else:
                             bad_log[evt].append(chNo[1])
