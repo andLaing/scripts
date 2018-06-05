@@ -25,7 +25,7 @@ def sipm_rms():
                 continue
 
             if len(rmss) == 0:
-                rmss = [ [] for i in range(sipmrwf.shape[1]/64) ]
+                rmss = [ [] for i in range(sipmrwf.shape[1]//64) ]
 
             chNos = dataIn.root.Sensors.DataSiPM[:]['sensorID']
             for evt, evtrwf in sipmrwf:
