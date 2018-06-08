@@ -89,10 +89,10 @@ def generate_pdfs():
             for key, pmap in pmap_dict.items():
                 mask_list = []
                 for s1 in pmap.s1s:
-                    print(s1.times[0], s1.times[0]  / units.mus - 1)
                     mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
                                      (wf_range > s1.times[-1] / units.mus + 1) )
                 for s2 in pmap.s2s:
+                    print(s2.times[0], s2.times[0]  / units.mus - 2)
                     mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
                                      (wf_range > s2.times[-1] / units.mus + 2) )
                 reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
