@@ -92,7 +92,6 @@ def generate_pdfs():
                     mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
                                      (wf_range > s1.times[-1] / units.mus + 1) )
                 for s2 in pmap.s2s:
-                    print(s2.times[0], s2.times[0]  / units.mus - 2)
                     mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
                                      (wf_range > s2.times[-1] / units.mus + 2) )
                 reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
@@ -173,10 +172,13 @@ def sorter_func(base_name):
 def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
 
     pitch = 10
+    print('n_ring = ', n_ring)
+    print('hit_pos = ', hit_pos)
     veto_indcs = np.where((xy[:,0] < hit_pos[0] + n_ring * pitch) &
                           (xy[:,0] > hit_pos[0] - n_ring * pitch) &
                           (xy[:,1] < hit_pos[1] + n_ring * pitch) &
                           (xy[:,1] > hit_pos[1] - n_ring * pitch))
+    print('indices = ', veto_indcs)
 
     ## Forces out of the histo range (or not if you have weird ranges)
     cwf[veto_indcs[0]][:, np.invert(z_veto)] = -100000
