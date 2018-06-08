@@ -181,7 +181,9 @@ def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
     print('indices = ', veto_indcs)
 
     ## Forces out of the histo range (or not if you have weird ranges)
-    cwf[veto_indcs[0]][:, np.invert(z_veto)] = -100000
+    for wf in cwf[veto_indcs[0]][:, np.invert(z_veto)]:
+        wf = -100000
+    #cwf[veto_indcs[0]][:, np.invert(z_veto)] = -100000
     print(cwf[veto_indcs[0][:2]][:, np.invert(z_veto)])
     return cwf
     
