@@ -13,6 +13,8 @@ def sipm_rms():
 
     file_base = sys.argv[1]
 
+    run_no = file_base.split('_')[1]
+
     rmss = []
 
     evt_no = 0
@@ -55,6 +57,7 @@ def sipm_rms():
 
         plt.tight_layout()
         figs[-1][0].show()
+        figs[-1][0].savefig('DICE_'+str(read_start+1)+'--'+str(read_start+5)+'RMS_run'+run_no+'.png')
 
     input('Hit enter when done with plots')
     

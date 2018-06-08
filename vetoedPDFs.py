@@ -29,7 +29,7 @@ def generate_pdfs():
     hit_file_base  = sys.argv[2]
     raw_file_base  = sys.argv[3]
 
-    pmap_sorter = sorter_func(pmap_file_base[:-5])
+    pmap_sorter = sorter_func(pmap_file_base)
     pmap_files = sorted(glob(pmap_file_base+'*.h5'), key=pmap_sorter)
     #hit_sorter = sorter_func(hit_file_base)
     hit_files  = sorted(glob(hit_file_base+'*.h5'))#, key=hit_sorter)
@@ -77,7 +77,6 @@ def generate_pdfs():
         hit_positions = load_dsts(hit_files, 'DST', 'Events')[['event', 'X', 'Y']].values
         ## Start assuming KR data and Kdst
         ## For each event [evt_no, list tuples start and end veto areas]
-        print('here1')
         reduced_pulse_info = []
         for pmf in pmap_files:
             print(pmf)

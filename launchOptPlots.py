@@ -20,4 +20,5 @@ else:
 fileList = gl.glob(file_base)
 widths = [float(f[f.find('wid')+3:f.find('end')-1]) for f in fileList]
 
-opt.optPMTCal(fileList, widths, 'intgau', 100, 100)
+## opt.optPMTCal(fileList, widths, 'intgau', 100, 100)
+opt.optPMTCal(fileList, widths, 'dfunc', 10, 100)
