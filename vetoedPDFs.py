@@ -176,7 +176,7 @@ def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
                           (xy[:,0] > hit_pos[0] - n_ring * pitch) &
                           (xy[:,1] < hit_pos[1] + n_ring * pitch) &
                           (xy[:,1] > hit_pos[1] - n_ring * pitch))
-    print('indices = ', veto_indcs)
+    #print('indices = ', veto_indcs)
 
     ## Forces out of the histo range (or not if you have weird ranges)
     new_section = cwf[veto_indcs[0]]
