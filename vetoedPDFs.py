@@ -29,7 +29,7 @@ def generate_pdfs():
     hit_file_base  = sys.argv[2]
     raw_file_base  = sys.argv[3]
 
-    pmap_sorter = sorter_func(pmap_file_base[:-3])
+    pmap_sorter = sorter_func(pmap_file_base)
     pmap_files = sorted(glob(pmap_file_base+'*.h5'), key=pmap_sorter)
     #hit_sorter = sorter_func(hit_file_base)
     hit_files  = sorted(glob(hit_file_base+'*.h5'))#, key=hit_sorter)
@@ -172,8 +172,6 @@ def sorter_func(base_name):
 def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
 
     pitch = 10
-    print('n_ring = ', n_ring)
-    print('hit_pos = ', hit_pos)
     veto_indcs = np.where((xy[:,0] < hit_pos[0] + n_ring * pitch) &
                           (xy[:,0] > hit_pos[0] - n_ring * pitch) &
                           (xy[:,1] < hit_pos[1] + n_ring * pitch) &
@@ -181,11 +179,10 @@ def ring_veto(cwf, n_ring, z_veto, hit_pos, xy):
     print('indices = ', veto_indcs)
 
     ## Forces out of the histo range (or not if you have weird ranges)
-    #cwf[veto_indcs[0]][:, np.invert(z_veto)] = -100000
     new_section = cwf[veto_indcs[0]]
     new_section[:, np.invert(z_veto)] = -100000
     cwf[veto_indcs[0]] = new_section
-    print(cwf[veto_indcs[0][:2]][:, np.invert(z_veto)])
+    
     return cwf
     
 if __name__ == '__main__':
