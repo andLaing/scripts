@@ -9,7 +9,7 @@ from glob import iglob as gl
 def count_zeros():
 
     file_base = sys.argv[0]
-
+    print(file_base)
     with open('zero_channels.txt', 'w') as out_dat:
         out_dat.write('Proportion of samples at zero per event \n \n \n')
         for ifile in gl(file_base+'*.h5'):
