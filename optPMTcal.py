@@ -158,9 +158,11 @@ def optPMTCal(fileNames, intWidths, funcName, min_stat, limit_ped):
                 ax.set_title(axis_titles[k]+' vs integral width for PMT '+str(j))
         plt.tight_layout()
         plt.draw()
-        catcher = input("next plot? q to stop ")
+        catcher = input("next plot? q to stop, s to save ")
         if catcher == 'q':
             exit()
+        if catcher == 's':
+            plt.savefig('pmtCalOptPlots_ch'+str(j)+'.png')
         plt.cla()
 
 

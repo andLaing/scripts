@@ -134,10 +134,10 @@ def fit_dataset():
         errs[errs==0] = 0.1
         gfitRes = fitf.fit(fitf.gauss, bins[pD[0]-5:pD[0]+5], dar[pD[0]-5:pD[0]+5], sd0, sigma=errs, bounds=gb0)
 
-        channelRes[5] = gfitRes.values[1]
-        channelRes[6] = gfitRes.errors[1]
-        channelRes[7] = gfitRes.values[2]
-        channelRes[8] = gfitRes.errors[2]
+        channelRes[4] = gfitRes.values[1]
+        channelRes[5] = gfitRes.errors[1]
+        channelRes[6] = gfitRes.values[2]
+        channelRes[7] = gfitRes.errors[2]
 
         respF = ffunc(dark_spectrum=dar[b1:b2],
                       pedestal_mean=gfitRes.values[1],
