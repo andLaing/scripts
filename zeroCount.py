@@ -13,7 +13,9 @@ def count_zeros():
     with open('zero_channels.txt', 'w') as out_dat:
         out_dat.write('Proportion of samples at zero per event \n \n \n')
         for ifile in gl(file_base+'*.h5'):
+            print('shite')
             with tb.open_file(ifile) as data_in:
+                print('shite2')
                 try:
                     sipmrwf = data_in.root.RD.sipmrwf
                 except tb.NoSuchNodeError:
