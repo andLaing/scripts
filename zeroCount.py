@@ -3,7 +3,7 @@ import sys
 import tables as tb
 import numpy  as np
 
-from glob import iglob as gl
+from glob import glob as gl
 
 
 def count_zeros():
@@ -12,7 +12,7 @@ def count_zeros():
     
     with open('zero_channels.txt', 'w') as out_dat:
         out_dat.write('Proportion of samples at zero per event \n \n \n')
-        for ifile in gl(file_base+'*.h5'):
+        for ifile in sorted(gl(file_base+'*.h5')):
             with tb.open_file(ifile) as data_in:
                 try:
                     sipmrwf = data_in.root.RD.sipmrwf
