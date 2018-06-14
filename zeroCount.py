@@ -22,7 +22,7 @@ def count_zeros():
                     
                 sens_ids = np.fromiter((ch[1] for ch in data_in.root.Sensors.DataSiPM), np.int)
                 evts     = np.fromiter((ev[0] for ev in data_in.root.Run.events), np.int)
-
+                print('file: '+ifile)
                 for evt_no, evtrwf in zip(evts, sipmrwf):
                     out = str(evt_no)
                     
