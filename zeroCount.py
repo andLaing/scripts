@@ -12,7 +12,7 @@ def count_zeros():
 
     with open('zero_channels.txt', 'w') as out_dat:
         out_dat.write('Proportion of samples at zero per event \n \n \n')
-        for ifile in iglob(file_base+'*.h5'):
+        for ifile in gl(file_base+'*.h5'):
             with tb.open_file(ifile) as data_in:
                 try:
                     sipmrwf = data_in.root.RD.sipmrwf
