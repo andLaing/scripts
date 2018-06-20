@@ -5,7 +5,7 @@ from glob import glob
 from functools import partial
 
 from invisible_cities.core.system_of_units_c import      units
-from invisible_cities.io.pmaps_io            import load_pmaps
+from invisible_cities.io.pmaps_io            import load_pmaps_as_df
 from invisible_cities.io.dst_io              import load_dsts
 from invisible_cities.calib                  import calib_functions         as cf
 from invisible_cities.reco                   import calib_sensors_functions as csf
@@ -81,20 +81,33 @@ def generate_pdfs():
         for pmf in pmap_files:
             print(pmf)
             try:
-                pmap_dict = load_pmaps(pmf)
+                ## pmap_dict = load_pmaps(pmf)
+                s1s, s2s, _, _, _ = load_pmaps_as_df(pmf)
             except (ValueError, tb.exceptions.NoSuchNodeError):
                 print("Empty file. Skipping.")
                 continue
 
-            for key, pmap in pmap_dict.items():
+            ## for key, pmap in pmap_dict.items():
+            for evtNo in s1s['event'].unique():
+                evtS1 = s1s[s1s['event'] == evtNo]
+                evtS2 = s2s[s2s['event'] == evtNo]
                 mask_list = []
-                for s1 in pmap.s1s:
-                    mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
-                                     (wf_range > s1.times[-1] / units.mus + 1) )
-                for s2 in pmap.s2s:
-                    mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
-                                     (wf_range > s2.times[-1] / units.mus + 2) )
-                reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
+                ## for s1 in pmap.s1s:
+                for is1 in evtS1['peak'].unique():
+                    ## mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
+                    ##                  (wf_range > s1.times[-1] / units.mus + 1) )
+                    s1 = evtS1[evtS1['peak'] == is1]
+                    mask_list.append((wf_range < s1['time'].iloc[0]  / units.mus - 1) |
+                                     (wf_range > s1['time'].iloc[-1] / units.mus + 1) )
+                ## for s2 in pmap.s2s:
+                ##     mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
+                ##                      (wf_range > s2.times[-1] / units.mus + 2) )
+                for is2 in evtS2['peak'].unique():
+                    s2 = evtS2[evtS2['peak'] == is2]
+                    mask_list.append((wf_range < s2['time'].iloc[0]  / units.mus - 2) |
+                                     (wf_range > s2['time'].iloc[-1] / units.mus + 2) )
+                ## reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
+                reduced_pulse_info.append([evtNo, np.logical_and.reduce(mask_list)])
         print('masking info stored')
         mask_counter = 0
         for rawf in raw_files:
