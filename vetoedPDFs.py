@@ -72,8 +72,6 @@ def generate_pdfs():
         hist_3_vetoed  = np.zeros(shape, dtype=np.int)
 
         ## Hit info
-        ## dst_frame = load_dsts(hit_files, 'DST', 'Events')
-        ## hit_positions = dst_frame[['event', 'X', 'Y']].values
         hit_positions = load_dsts(hit_files, 'DST', 'Events')[['event', 'X', 'Y']].values
         ## Start assuming KR data and Kdst
         ## For each event [evt_no, list tuples start and end veto areas]
@@ -94,19 +92,13 @@ def generate_pdfs():
                 mask_list = []
                 ## for s1 in pmap.s1s:
                 for is1 in evtS1['peak'].unique():
-                    ## mask_list.append((wf_range < s1.times[0]  / units.mus - 1) |
-                    ##                  (wf_range > s1.times[-1] / units.mus + 1) )
                     s1 = evtS1[evtS1['peak'] == is1]
                     mask_list.append((wf_range < s1['time'].iloc[0]  / units.mus - 1) |
                                      (wf_range > s1['time'].iloc[-1] / units.mus + 1) )
-                ## for s2 in pmap.s2s:
-                ##     mask_list.append((wf_range < s2.times[0]  / units.mus - 2) |
-                ##                      (wf_range > s2.times[-1] / units.mus + 2) )
                 for is2 in evtS2['peak'].unique():
                     s2 = evtS2[evtS2['peak'] == is2]
                     mask_list.append((wf_range < s2['time'].iloc[0]  / units.mus - 2) |
                                      (wf_range > s2['time'].iloc[-1] / units.mus + 2) )
-                ## reduced_pulse_info.append([key, np.logical_and.reduce(mask_list)])
                 reduced_pulse_info.append([evtNo, np.logical_and.reduce(mask_list)])
         print('masking info stored')
         mask_counter = 0
@@ -154,15 +146,20 @@ def generate_pdfs():
                             ## dummy evt_no to definitely give no info
                             indx = np.argwhere(revent_nos==-100)
                         #print(indx, indx[0][0])
+                   full_spec(hist_full_spec)
+                   z_vetoed(hist_z_vetoed)
+                   one_ring(hist_1_vetoed)
+                   two_ring(hist_2_vetoed)
+                   thr_ring(hist_3_vetoed) 
             except tb.HDF5ExtError:
                 print('corrupt file')
                 continue
 
-        full_spec(hist_full_spec)
-        z_vetoed(hist_z_vetoed)
-        one_ring(hist_1_vetoed)
-        two_ring(hist_2_vetoed)
-        thr_ring(hist_3_vetoed)
+        ## full_spec(hist_full_spec)
+        ## z_vetoed(hist_z_vetoed)
+        ## one_ring(hist_1_vetoed)
+        ## two_ring(hist_2_vetoed)
+        ## thr_ring(hist_3_vetoed)
     #pdf_out.close()
 
 
