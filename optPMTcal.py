@@ -79,11 +79,11 @@ def fit_dataset(dataF_table, funcName, min_stat, limit_ped):
 
         ## Fit the dark spectrum with a Gaussian (not really necessary for the conv option)
         gb0 = [(0, -100, 0), (1e99, 100, 10000)]
-        av, rms = weighted_av_std(bins, dspec)
+        av, rms = weighted_av_std(bins[dspec>100], dspec[dspec>100])
         sd0 = (dspec.sum(), av, rms)
-        errs = np.sqrt(dspec)
+        errs = np.sqrt(dspec[dspec>100])
         errs[errs==0] = 0.0001
-        gfitRes = fitf.fit(fitf.gauss, bins, dspec, sd0, sigma=errs, bounds=gb0)
+        gfitRes = fitf.fit(fitf.gauss, bins[dspec>100], dspec[dspec>100], sd0, sigma=errs, bounds=gb0)
 
         fitVals[i,0] = gfitRes.values[2]
         fitVals[i,1] = gfitRes.errors[2]
@@ -279,10 +279,12 @@ def optSiPMCal(fileNames, intWidths, funcName, min_stat, limit_ped):
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
     for j, vals in enumerate(fResults):
         for ax, val, axtit in zip(axes.flatten(), vals, axistitles):
-            ax.hist(val, bins=100, range=(0, 30), log=True, label='Integral width '+str(intWidths[j]))
+            ax.hist(val, bins=100, range=(0, 30), log=True, label='Integral '+intWidths[j])
             if j == 0:
                 ax.set_title(axtit)
     plt.legend()
     plt.tight_layout()
     fig.show()
     catcher = input('thoughts?')
+    if 's' in catcher:
+        fig.savefig('sipmOptPlots.png')

@@ -130,6 +130,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     ## Loop over the specra:
     outData = []
     outDict = {}
+    llchans = []
     if not optimise:
         fnam = {'ngau':'poisson_scaled_gaussians_ngau', 'intgau':'poisson_scaled_gaussians_min', 'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution'}
         pOut = tb.open_file('sipmCalParOut_R'+str(run_no)+'_F'+func_name+'.h5', 'w')
@@ -143,6 +144,10 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     for ich, (led, dar) in enumerate(zip(specsL, specsD)):
         if chNos[ich] in knownDead:
             outData.append([chNos[ich], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], 0, 0])
+            if not optimise:
+                for kname in pIO.generic_params:
+                    outDict[kname] = (0, 0)
+                param_writer(chNos[ich], outDict)
             print('no peaks in dark spectrum, spec ', ich)
             continue
         ## Limits for safe fit
@@ -176,15 +181,6 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         ## Scale just in case we lost a different amount of integrals in dark and led
         ## scale = led.sum() / dar.sum()
         scale = 1
-        if 'dfunc' in func_name:
-            respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
-                                     pedestal_mean=gfitRes.values[1],
-                                     pedestal_sigma=gfitRes.values[2])
-        elif 'conv' in func_name:
-            respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
-                                     bins=bins[b1:b2])
-        else:
-            respF = ffuncs[func_name]
 
         ## Take into account the scale in seed finding (could affect Poisson mu)????
         ped_vals = np.array([gfitRes.values[0] * scale, gfitRes.values[1], gfitRes.values[2]])
@@ -194,7 +190,22 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         darr = dar[b1:b2] * scale
         darr = darr[binR<5]
         seeds, bounds = seeds_and_bounds(ich, func_name, bins[b1:b2], led[b1:b2],
-                                         ped_vals, gfitRes.errors, limit_ped)
+                                         ped_vals, gfitRes.errors, limit_ped)      
+        ## Protect low light channels
+        if seeds[1] < 0.2:
+            llchans.append(chNos[ich])
+            ## Dodgy setting of high charge dark bins to zero
+            dar[bins>gfitRes.values[1] + 3*gfitRes.values[2]] = 0
+        ##
+        if 'dfunc' in func_name:
+            respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
+                                     pedestal_mean=gfitRes.values[1],
+                                     pedestal_sigma=gfitRes.values[2])
+        elif 'conv' in func_name:
+            respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
+                                     bins=bins[b1:b2])
+        else:
+            respF = ffuncs[func_name]
         
         ## The fit
         errs = np.sqrt(led)
@@ -288,6 +299,8 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         ax.set_title(nm)
     fig.show()
     input('finished with plots?')
+
+    print('Low light chans:', llchans)
 
     ## with open(file_name[:-3]+'_Fit_'+func_name+'.dat', 'w') as dbF:
     ##     dbF.write('Minimum statistics: '+str(min_stat)+'\n\n')

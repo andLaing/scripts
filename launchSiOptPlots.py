@@ -18,6 +18,6 @@ else:
     exit()
 
 fileList = gl.glob(file_base)
-widths = [float(f[f.find('wid')+3:f.find('end')-1]) for f in fileList]
+widths = [f[f.find('start')+5:f.find('wid')-1]+'--'+f[f.find('end')+3:-3] for f in fileList]
 
 opt.optSiPMCal(fileList, widths, 'dfunc', 0, 10000)

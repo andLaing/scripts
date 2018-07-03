@@ -110,8 +110,8 @@ def compare_sims():
             s1per_evt_NO.append(s1s_NO['peak'].nunique())
             s1per_evt_O .append(s1s_O['peak'].nunique())
             #print('n_s1_nosc = ', s1s_NO['peak'].nunique(), ', n_s1_osc = ', s1s_O['peak'].nunique())
-            if s1s_NO['peak'].nunique() != 1: continue
-            if s1s_O['peak'].nunique()  != 1: continue
+            #if s1s_NO['peak'].nunique() != 1: continue
+            #if s1s_O['peak'].nunique()  != 1: continue
 
             ## s2sNO = [rebin_peak(s2raw_NO, n_rebin) for s2raw_NO in s2sraw_NO]
             ## s2sO  = [rebin_peak(s2raw_O, n_rebin) for s2raw_O in s2sraw_O]
@@ -124,12 +124,16 @@ def compare_sims():
             ## S1tO  = s1t_O[np.argmax(s1eO)]
             #print('Aqui?')
             #fill histograms
-            s1H_NO.append(s1s_NO['ene'].max())
-            s1W_NO.append(s1s_NO['time'].iloc[-1] - s1s_NO['time'].iloc[0])
-            s1Q_NO.append(s1s_NO['ene'].sum())
-            s1H_O.append(s1s_O['ene'].max())
-            s1W_O.append(s1s_O['time'].iloc[-1] - s1s_O['time'].iloc[0])
-            s1Q_O.append(s1s_O['ene'].sum())
+            for is1 in range(s1s_NO['peak'].nunique()):
+                s1 = s1s_NO[s1s_NO['peak'] == is1]
+                s1H_NO.append(s1['ene'].max())
+                s1W_NO.append(s1['time'].iloc[-1] - s1['time'].iloc[0])
+                s1Q_NO.append(s1['ene'].sum())
+            for js1 in range(s1s_O['peak'].nunique()):
+                s1 = s1s_O[s1s_O['peak'] == js1]
+                s1H_O.append(s1['ene'].max())
+                s1W_O.append(s1['time'].iloc[-1] - s1['time'].iloc[0])
+                s1Q_O.append(s1['ene'].sum())
 
             s2per_evt_NO.append(s2s_NO['peak'].nunique())
             s2per_evt_O.append(s2s_O['peak'].nunique())

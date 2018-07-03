@@ -12,7 +12,7 @@ def weighted_av_std(values, weights):
 
     var = np.average((values-avg)**2, weights=weights)
     # renormalize
-    var = values.sum() * var / (values.sum()-1)
+    var = weights.sum() * var / (weights.sum()-1)
 
     return avg, np.sqrt(var)
 

@@ -30,7 +30,7 @@ def weighted_av_std(values, weights):
 
     var = np.average((values-avg)**2, weights=weights)
     # renormalize
-    var = values.sum() * var / (values.sum()-1)
+    var = weights.sum() * var / (weights.sum()-1)
 
     return avg, np.sqrt(var)
 
@@ -163,11 +163,11 @@ def main():
 
         ## Fit the dark spectrum with a Gaussian (not really necessary for the conv option)
         gb0 = [(0, -100, 0), (1e99, 100, 10000)]
-        av, rms = weighted_av_std(bins, dspec)
+        av, rms = weighted_av_std(bins[dspec>100], dspec[dspec>100])
         sd0 = (dspec.sum(), av, rms)
-        errs = np.sqrt(dspec)
+        errs = np.sqrt(dspec[dspec>100])
         errs[errs==0] = 0.0001
-        gfitRes = fitf.fit(fitf.gauss, bins, dspec, sd0, sigma=errs, bounds=gb0)
+        gfitRes = fitf.fit(fitf.gauss, bins[dspec>100], dspec[dspec>100], sd0, sigma=errs, bounds=gb0)
         outDict[pIO.generic_params[2]] = (gfitRes.values[1], gfitRes.errors[1])
         outDict[pIO.generic_params[3]] = (gfitRes.values[2], gfitRes.errors[2])
 
