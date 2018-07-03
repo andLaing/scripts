@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 
 from glob import iglob
 
-from invisible_cities.io.pmaps_io import load_pmaps_as_df
+from invisible_cities.io.pmaps_io          import load_pmaps_as_df
+import invisible_cities.core.fit_functions as fitf
+from invisible_cities.icaro.hst_functions  import shift_to_bin_centers
 
 
 def relative_pmt_response():
@@ -17,6 +19,8 @@ def relative_pmt_response():
     """
 
     pmap_file_base = sys.argv[1]
+
+    run_number = pmap_file_base.split('/')[1]
 
     s1hists = {x : [] for x in range(12)}
     s2hists = {x : [] for x in range(12)}
@@ -48,11 +52,11 @@ def relative_pmt_response():
 
     ## Make the plots
     s1bins = np.arange(-2, 10, 0.1)
-    s2bins = np.arange(0, 2, 0.02)
+    s2bins = np.arange(0, 1.2, 0.02)
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
-            ax.hist(val)
+            ax.hist(val, bins=100)
             ax.set_title('PMT 1 S1 charge distribution')
             ax.set_xlabel('integrated charge (pe)')
             ax.set_ylabel('AU')
@@ -64,20 +68,26 @@ def relative_pmt_response():
             ax.set_ylabel('AU')
     plt.tight_layout()
     figs1.show()
+    figs1.savefig('s1relativecharge_R'+run_number+'.h5')
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
             ax.set_title('PMT 1 S1 charge distribution')
             ax.set_xlabel('integrated charge (pe)')
             ax.set_ylabel('AU')
-            ax.hist(val)
+            ax.hist(val, bins=100)
         else:
             ax.set_title('PMT '+str(key)+' S2 relative charge distribution')
             ax.set_xlabel('pmt q / pmt1 q')
             ax.set_ylabel('AU')
-            ax.hist(val, bins=s2bins)
+            vals, bins, _ = ax.hist(val, bins=s2bins)
+            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins), vals,
+                             seed=(vals.sum(), bins[vals.argmax()], 0.01),
+                             sigma=np.sqrt(vals))
+            print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi)
     plt.tight_layout()
     figs2.show()
+    figs2.savefig('s2relativecharge_R'+run_number+'.h5')
     input('plots good?')
 
                         
