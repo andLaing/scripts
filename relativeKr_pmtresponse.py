@@ -48,7 +48,7 @@ def relative_pmt_response():
 
     ## Make the plots
     s1bins = np.arange(-2, 10, 0.1)
-    s2bins = np.arange(0, 10, 0.1)
+    s2bins = np.arange(0, 2, 0.02)
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
