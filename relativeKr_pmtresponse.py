@@ -81,9 +81,11 @@ def relative_pmt_response():
             ax.set_xlabel('pmt q / pmt1 q')
             ax.set_ylabel('AU')
             vals, bins, _ = ax.hist(val, bins=s2bins)
+            errs = np.sqrt(vals)
+            errs[errs<=0] = 0.001
             fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins), vals,
                              seed=(vals.sum(), bins[vals.argmax()], 0.01),
-                             sigma=np.sqrt(vals))
+                             sigma=errs)
             print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi)
     plt.tight_layout()
     figs2.show()
