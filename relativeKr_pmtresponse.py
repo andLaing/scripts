@@ -52,15 +52,15 @@ def relative_pmt_response():
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
+            ax.hist(val)
             ax.title('PMT 1 S1 charge distribution')
             ax.xlabel('integrated charge (pe)')
             ax.ylabel('AU')
-            ax.hist(val)
         else:
+            ax.hist(val, bins=s1bins)
             ax.title('PMT '+str(key)+' relative charge distribution')
             ax.xlabel('pmt q / pmt1 q')
             ax.ylabel('AU')
-            ax.hist(val, bins=s1bins)
     plt.tight_layout()
     figs1.show()
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
