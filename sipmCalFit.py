@@ -5,9 +5,7 @@ from scipy.signal import find_peaks_cwt
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from functools import partial
-#from pylab import cm
 
-#from JA_NEWCalibration.calib import responseWithDataPed
 from invisible_cities.icaro.hst_functions import display_matrix
 import invisible_cities.reco.spe_response as speR
 import invisible_cities.core.fit_functions as fitf
