@@ -68,7 +68,7 @@ def relative_pmt_response():
             ax.set_ylabel('AU')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativecharge_R'+run_number+'.h5')
+    figs1.savefig('s1relativecharge_R'+run_number+'.png')
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
@@ -87,7 +87,7 @@ def relative_pmt_response():
             print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativecharge_R'+run_number+'.h5')
+    figs2.savefig('s2relativecharge_R'+run_number+'.png')
     input('plots good?')
 
                         
