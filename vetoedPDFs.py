@@ -63,13 +63,6 @@ def generate_pdfs():
         one_ring    = HIST(table_name  = 'one_ring_vetoed')
         two_ring    = HIST(table_name  = 'two_ring_vetoed')
         thr_ring    = HIST(table_name  = 'thr_ring_vetoed')
-        ## empty arrays for histograms
-        shape = 1792, len(bin_centres)
-        hist_full_spec = np.zeros(shape, dtype=np.int)
-        hist_z_vetoed  = np.zeros(shape, dtype=np.int)
-        hist_1_vetoed  = np.zeros(shape, dtype=np.int)
-        hist_2_vetoed  = np.zeros(shape, dtype=np.int)
-        hist_3_vetoed  = np.zeros(shape, dtype=np.int)
 
         ## Hit info
         hit_positions = load_dsts(hit_files, 'DST', 'Events')[['event', 'X', 'Y']].values
@@ -107,6 +100,13 @@ def generate_pdfs():
             if mask_counter >= len(reduced_pulse_info):
                 continue
             try:
+                ## empty arrays for histograms
+                shape = 1792, len(bin_centres)
+                hist_full_spec = np.zeros(shape, dtype=np.int)
+                hist_z_vetoed  = np.zeros(shape, dtype=np.int)
+                hist_1_vetoed  = np.zeros(shape, dtype=np.int)
+                hist_2_vetoed  = np.zeros(shape, dtype=np.int)
+                hist_3_vetoed  = np.zeros(shape, dtype=np.int)
                 with tb.open_file(rawf) as raw_in:
                     revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
                     
