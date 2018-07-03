@@ -29,18 +29,18 @@ def relative_pmt_response():
             s2evt = s2pmtdf[s2pmtdf['event'] == evt]
             for peak in s1evt['peak'].unique():
                 s1peak = s1evt[s1evt['peak'] == peak]
-                pmt1Q = s1peak[s1peak['pmt'] == 1]['ene'].sum()
-                for pmt in s1peak['pmt']:
+                pmt1Q = s1peak[s1peak['npmt'] == 1]['ene'].sum()
+                for pmt in s1peak['npmt']:
                     if pmt != 1:
-                        s1hists[pmt].append(s1peak[s1peak['pmt'] == pmt]['ene'].sum()/pmt1Q)
+                        s1hists[pmt].append(s1peak[s1peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
                         s1hists[pmt].append(pmt1Q)
             for peak in s2evt['peak'].unique():
                 s2peak = s2evt[s2evt['peak'] == peak]
-                pmt1Q = s2peak[s2peak['pmt'] == 1]['ene'].sum()
-                for pmt in s2peak['pmt']:
+                pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].sum()
+                for pmt in s2peak['npmt']:
                     if pmt != 1:
-                        s2hists[pmt].append(s2peak[s2peak['pmt'] == pmt]['ene'].sum()/pmt1Q)
+                        s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
                         s2hists[pmt].append(pmt1Q)
 
