@@ -23,7 +23,7 @@ def relative_pmt_response():
 
     pmap_file_base = sys.argv[1]
 
-    run_number = pmap_file_base.split('/')[1]
+    run_number = pmap_file_base.split('/')[2]
 
     s1hists = {x : [] for x in range(12)}
     s2hists = {x : [] for x in range(12)}
