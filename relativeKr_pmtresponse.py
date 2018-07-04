@@ -86,7 +86,7 @@ def relative_pmt_response():
             fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins), vals,
                              seed=(vals.sum(), bins[vals.argmax()], 0.01),
                              sigma=errs)
-            print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi)
+            print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
     figs2.savefig('s2relativecharge_R'+run_number+'.png')
