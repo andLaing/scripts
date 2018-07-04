@@ -77,7 +77,7 @@ def relative_pmt_response():
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
-            ax.set_title('PMT 1 S1 charge distribution')
+            ax.set_title('PMT 1 S2 charge distribution')
             ax.set_xlabel('integrated charge (pe)')
             ax.set_ylabel('AU')
             ax.hist(val, bins=100)
