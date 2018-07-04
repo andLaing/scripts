@@ -99,10 +99,11 @@ def relative_pmt_response():
     figs2.show()
     figs2.savefig('s2relativecharge_R'+run_number+'.png')
 
-    plt.errorbar(list(fitVals.keys()),
-                 np.fromiter((x[0] for x in fitVals.values()), np.float),
-                 yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
-                 label='Average response of PMTs to Kr relative to PMT 1')
+    figcal, axcal = plt.subplots()
+    axcal.errorbar(list(fitVals.keys()),
+                   np.fromiter((x[0] for x in fitVals.values()), np.float),
+                   yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
+                   label='Average response of PMTs to Kr relative to PMT 1')
     ## Get the calibration info for comparison.
     cal_files = [ fname for fname in sys.argv[2:] ]
     read_params = partial(spr, table_name='FIT_pmt_scaled_dark_pedestal',
@@ -125,12 +126,12 @@ def relative_pmt_response():
             normVals = np.array(calVals) / pmt1Val
             normErrs = normVals * np.sqrt(np.power(np.array(calErrs)/np.array(calVals), 2) +
                                           np.power(pmt1Err/pmt1Val, 2))
-            plt.errorbar(list(fitVals.keys()), normmVals,
-                         yerr=normErrs, label='Calibration '+cal_run)
-    plt.legend()
-    plt.xlabel('PMT sensor ID')
-    plt.ylabel('Response relative to that of PMT 1')
-    plt.show()
+            axcal.errorbar(list(fitVals.keys()), normmVals,
+                           yerr=normErrs, label='Calibration '+cal_run)
+    axcal.legend()
+    axcal.set_xlabel('PMT sensor ID')
+    axcal.set_ylabel('Response relative to that of PMT 1')
+    figcal.show()
     input('plots good?')
 
                         
