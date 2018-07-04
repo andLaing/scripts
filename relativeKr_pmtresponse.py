@@ -132,6 +132,7 @@ def relative_pmt_response():
     axcal.set_xlabel('PMT sensor ID')
     axcal.set_ylabel('Response relative to that of PMT 1')
     figcal.show()
+    figcal.savefig('calPoisKrRelComp.png')
     input('plots good?')
 
                         
