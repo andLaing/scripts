@@ -118,13 +118,13 @@ def relative_pmt_response():
             cErrs = []
             for sens, (pars, errs) in read_params(cal_in):
                 if sens != 1:
-                    calVals.append(pars['poisson_mu'])
-                    calErrs.append(errs['poisson_mu'])
+                    cVals.append(pars['poisson_mu'])
+                    cErrs.append(errs['poisson_mu'])
                 else:
                     pmt1Val = pars['poisson_mu']
                     pmt1Err = errs['poisson_mu']
-            normVals = np.array(calVals) / pmt1Val
-            normErrs = normVals * np.sqrt(np.power(np.array(calErrs)/np.array(calVals), 2) +
+            normVals = np.array(cVals) / pmt1Val
+            normErrs = normVals * np.sqrt(np.power(np.array(cErrs)/np.array(cVals), 2) +
                                           np.power(pmt1Err/pmt1Val, 2))
             axcal.errorbar(list(fitVals.keys()), normmVals,
                            yerr=normErrs, label='Calibration '+cal_run)
