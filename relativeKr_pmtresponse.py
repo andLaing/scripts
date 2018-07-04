@@ -86,10 +86,13 @@ def relative_pmt_response():
             ax.set_xlabel('pmt q / pmt1 q')
             ax.set_ylabel('AU')
             vals, bins, _ = ax.hist(val, bins=s2bins)
-            errs = np.sqrt(vals)
-            errs[errs<=0] = 0.001
-            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins), vals,
-                             seed=(vals.sum(), bins[vals.argmax()], 0.01),
+            ## limit fit to region with stat error <= 10% Poisson
+            useful_bins = np.argwhere(vals>=100)
+            b1 = useful_bins[0][0]
+            b2 = useful_bins[-1][0]
+            errs = np.sqrt(vals[b1:b2])
+            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2], vals[b1:b2],
+                             seed=(vals.sum(), bins[vals.argmax()], 0.1),
                              sigma=errs)
             ax.plot(shift_to_bin_centers(bins),
                     fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
