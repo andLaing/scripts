@@ -126,7 +126,7 @@ def relative_pmt_response():
             normVals = np.array(cVals) / pmt1Val
             normErrs = normVals * np.sqrt(np.power(np.array(cErrs)/np.array(cVals), 2) +
                                           np.power(pmt1Err/pmt1Val, 2))
-            axcal.errorbar(list(fitVals.keys()), normmVals,
+            axcal.errorbar(list(fitVals.keys()), normVals,
                            yerr=normErrs, label='Calibration '+cal_run)
     axcal.legend()
     axcal.set_xlabel('PMT sensor ID')
