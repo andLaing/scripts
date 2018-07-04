@@ -99,7 +99,8 @@ def relative_pmt_response():
     figs2.show()
     figs2.savefig('s2relativecharge_R'+run_number+'.png')
 
-    plt.errorbar(fitVals.keys(), np.fromiter((x[0] for x in fitVals.values()), np.float),
+    plt.errorbar(list(fitVals.keys()),
+                 np.fromiter((x[0] for x in fitVals.values()), np.float),
                  yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
                  label='Average response of PMTs to Kr relative to PMT 1')
     ## Get the calibration info for comparison.
@@ -124,7 +125,7 @@ def relative_pmt_response():
             normVals = np.array(calVals) / pmt1Val
             normErrs = normVals * np.sqrt(np.power(np.array(calErrs)/np.array(calVals), 2) +
                                           np.power(pmt1Err/pmt1Val, 2))
-            plt.errorbar(fitVals.keys(), normmVals,
+            plt.errorbar(list(fitVals.keys()), normmVals,
                          yerr=normErrs, label='Calibration '+cal_run)
     plt.legend()
     plt.xlabel('PMT sensor ID')

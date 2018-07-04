@@ -106,9 +106,13 @@ def main():
     funcName = sys.argv[2]
     min_stat  = 0
     limit_ped = 10000.
+    fix_ped = False
     if len(sys.argv) > 3:
         min_stat = int(sys.argv[3])
         limit_ped = int(sys.argv[4])
+        if limit_ped == 0:
+            fix_ped = True
+            limit_ped = 10000
 
     dats = tb.open_file(fileName, 'r')
     bins = np.array(dats.root.HIST.pmt_dark_bins)
@@ -189,6 +193,10 @@ def main():
         elif 'conv' in funcName:
             respF = ffuncs[funcName](dark_spectrum=dspec[b1:b2] * scale,
                                      bins=bins[b1:b2])
+        elif fix_ped:
+            respF = partial(ffuncs[funcName],
+                            pedestal_mean =gfitRes.values[1],
+                            pedestal_sigma=gfitRes.values[2])
         else:
             respF = ffuncs[funcName]
 
