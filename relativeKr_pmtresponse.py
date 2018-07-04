@@ -1,12 +1,15 @@
 import sys
 
-import numpy as np
+import numpy  as np
+import tables as tb
 
 import matplotlib.pyplot as plt
 
-from glob import iglob
+from glob      import iglob
+from functools import partial
 
 from invisible_cities.io.pmaps_io          import load_pmaps_as_df
+from invisible_cities.io.channel_param_io  import subset_param_reader as spr
 import invisible_cities.core.fit_functions as fitf
 from invisible_cities.icaro.hst_functions  import shift_to_bin_centers
 
@@ -69,6 +72,8 @@ def relative_pmt_response():
     plt.tight_layout()
     figs1.show()
     figs1.savefig('s1relativecharge_R'+run_number+'.png')
+
+    fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
@@ -88,10 +93,43 @@ def relative_pmt_response():
                              sigma=errs)
             ax.plot(shift_to_bin_centers(bins),
                     fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
+            fitVals[key] = (fvals.values[1], fvals.values[2])
             print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
     figs2.savefig('s2relativecharge_R'+run_number+'.png')
+
+    plt.errorbar(fitVals.keys(), np.fromiter((x[0] for x in fitVals.values()), np.float),
+                 yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
+                 label='Average response of PMTs to Kr relative to PMT 1')
+    ## Get the calibration info for comparison.
+    cal_files = [ fname for fname in sys.argv[2:] ]
+    read_params = partial(spr, table_name='FIT_pmt_scaled_dark_pedestal',
+                          param_names=['poisson_mu'])
+    ## Assumes ordering, ok?
+    for i, fn in enumerate(cal_files):
+        cal_run = fn.split('_')[1]
+        with tb.open_file(fn) as cal_in:
+            pmt1Val = 0
+            pmt1Err = 0
+            cVals = []
+            cErrs = []
+            for sens, (pars, errs) in read_params(cal_in):
+                if sens != 1:
+                    calVals.append(pars['poisson_mu'])
+                    calErrs.append(errs['poisson_mu'])
+                else:
+                    pmt1Val = pars['poisson_mu']
+                    pmt1Err = errs['poisson_mu']
+            normVals = np.array(calVals) / pmt1Val
+            normErrs = normVals * np.sqrt(np.power(np.array(calErrs)/np.array(calVals), 2) +
+                                          np.power(pmt1Err/pmt1Val, 2))
+            plt.errorbar(fitVals.keys(), normmVals,
+                         yerr=normErrs, label='Calibration '+cal_run)
+    plt.legend()
+    plt.xlabel('PMT sensor ID')
+    plt.ylabel('Response relative to that of PMT 1')
+    plt.show()
     input('plots good?')
 
                         
