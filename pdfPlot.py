@@ -23,7 +23,9 @@ def main():
     sipmHist = 0
     mauHist = 0
     defsDone = False
+    print('Files: ')
     for fN in iglob(in_base+'*.h5'):
+        print(fN)
         with tb.open_file(fN, 'r') as data:
             if not defsDone:
                 binsS = np.array(data.root.HIST.sipm_mode_bins)
@@ -34,8 +36,8 @@ def main():
                                     len(data.root.HIST.sipm_median[0][0])))
                 defsDone = True
                 
-            sipmHist += data.root.HIST.sipm_mode[0]
-            mauHist += data.root.HIST.sipm_median[0]
+            sipmHist += np.array(data.root.HIST.sipm_mode).sum(axis=0)
+            mauHist += np.array(data.root.HIST.sipm_median).sum(axis=0)
 
     ## comparisons between plots and saved pdfs
     badCh = [ id for id, act in zip(sipmDats.SensorID,sipmDats.Active) if act==0]
@@ -54,12 +56,12 @@ def main():
             mxBins = binsS[np.nonzero(ped)[0][-1]], binsM[np.nonzero(mau)[0][-1]], noise_sampler.xbins[np.nonzero(pdf)]
             ints = ped.sum(), mau.sum()
             maxPos = binsS[np.argmax(ped)], binsM[np.argmax(mau)], noise_sampler.xbins[np.argmax(pdf)]
-            print('Means: ', mean1, mean2, mean3)
-            print('RMS: ', rms1, rms2, rms3)
-            print('Min bin: ', mnBins)
-            print('Max bin: ', mxBins)
-            print('Integral: ', ints)#Check if there was overflow
-            print('Max val at: ', maxPos)
+            ## print('Means: ', mean1, mean2, mean3)
+            ## print('RMS: ', rms1, rms2, rms3)
+            ## print('Min bin: ', mnBins)
+            ## print('Max bin: ', mxBins)
+            ## print('Integral: ', ints)#Check if there was overflow
+            ## print('Max val at: ', maxPos)
             ## ratS = np.where(pdf[:-1] != 0, ped/(ped.sum()*pdf[:-1]), 0.).sum()
             ## ratM = np.where(pdf[:-1] != 0, mau/(mau.sum()*pdf[:-1]), 0.).sum()
             ## print('Ratios: ', ratS, ratM)

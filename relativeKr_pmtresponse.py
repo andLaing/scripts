@@ -66,13 +66,13 @@ def relative_pmt_response():
             ax.set_ylabel('AU')
         else:
             #ax.hist(val, bins=s1bins)
-            ax.scatter(s1pmt1, val)
+            ax.scatter(s1pmt1[np.abs(val) < 10], val[np.abs(val) < 10])
             ax.set_title('PMT '+str(key)+' relative charge distribution vs PMT1 charge')
             ax.set_xlabel('pmt1 q (pe)')
             ax.set_ylabel('pmt q / pmt1 q')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeCORRPMT1Q_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeCORRPMT1QFILT_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
@@ -87,7 +87,7 @@ def relative_pmt_response():
             ax.set_title('PMT '+str(key)+' S2 relative charge distribution vs PMT1 charge')
             ax.set_xlabel('pmt1 q (pe)')
             ax.set_ylabel('pmt q / pmt1 q')
-            ax.scatter(s2pmt1, val)
+            ax.scatter(s2pmt1[np.abs(val) < 10], val[np.abs(val) < 10])
             #vals, bins, _ = ax.hist(val, bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
             #useful_bins = np.argwhere(vals>=100)
@@ -103,7 +103,7 @@ def relative_pmt_response():
             #print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativechargeCORRPMT1Q_R'+run_number+'.png')
+    figs2.savefig('s2relativechargeCORRPMT1QFILT_R'+run_number+'.png')
 
     ## figcal, axcal = plt.subplots()
     ## axcal.errorbar(list(fitVals.keys()),
