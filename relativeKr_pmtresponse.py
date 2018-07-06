@@ -27,25 +27,32 @@ def relative_pmt_response():
 
     s1hists = {x : [] for x in range(12)}
     s2hists = {x : [] for x in range(12)}
+    s1sumh  = []
+    s2sumh  = []
 
     for fn in iglob(pmap_file_base + '*.h5'):
 
         ## This version just using pmt databases
-        _, _, _, s1pmtdf, s2pmtdf = load_pmaps_as_df(fn)
+        s1df, s2df, _, s1pmtdf, s2pmtdf = load_pmaps_as_df(fn)
 
         for evt in s1pmtdf['event'].unique():
-            s1evt = s1pmtdf[s1pmtdf['event'] == evt]
-            s2evt = s2pmtdf[s2pmtdf['event'] == evt]
+            s1evt  = s1pmtdf[s1pmtdf['event'] == evt]
+            s2evt  = s2pmtdf[s2pmtdf['event'] == evt]
+            s1sevt = s1df[s1df['event'] == evt]
+            s2sevt = s2df[s2df['event'] == evt]
             for peak in s1evt['peak'].unique():
                 s1peak = s1evt[s1evt['peak'] == peak]
+                s1sumh.append(s1sevt[s1sevt['peak'] == peak]['ene'].sum())
                 pmt1Q = s1peak[s1peak['npmt'] == 1]['ene'].sum()
                 for pmt in s1peak['npmt']:
                     if pmt != 1:
                         s1hists[pmt].append(s1peak[s1peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
                         s1hists[pmt].append(pmt1Q)
+                        
             for peak in s2evt['peak'].unique():
                 s2peak = s2evt[s2evt['peak'] == peak]
+                s2sumh.append(s2sevt[s2sevt['peak'] == peak]['ene'].sum())
                 pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].sum()
                 for pmt in s2peak['npmt']:
                     if pmt != 1:
@@ -60,34 +67,39 @@ def relative_pmt_response():
     s1pmt1 = np.array(s1hists[1])
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
-            ax.hist(val, bins=100)
-            ax.set_title('PMT 1 S1 charge distribution')
-            ax.set_xlabel('integrated charge (pe)')
-            ax.set_ylabel('AU')
+            ## ax.hist(val, bins=100)
+            ax.scatter(s1sumh, val)
+            ax.set_title('PMT 1 S1 charge distribution vs s1 sum charge')
+            ax.set_xlabel('integrated charge in PMT sum (pe)')
+            ax.set_ylabel('integrated charge in PMT1 (pe)')
         else:
             #ax.hist(val, bins=s1bins)
-            ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            ax.set_title('PMT '+str(key)+' relative charge distribution vs PMT1 charge')
-            ax.set_xlabel('pmt1 q (pe)')
+            ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
+            ax.scatter(s1sumh, val)
+            ax.set_title('PMT '+str(key)+' S1 relative charge distribution vs PMT sum charge')
+            ax.set_xlabel('integrated charge in PMT sum (pe)')
             ax.set_ylabel('pmt q / pmt1 q')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeCORRPMT1QFILT_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeCORRPMTSumQ_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s2pmt1 = np.array(s2hists[1])
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
-            ax.set_title('PMT 1 S2 charge distribution')
-            ax.set_xlabel('integrated charge (pe)')
-            ax.set_ylabel('AU')
-            ax.hist(val, bins=100)
+            ax.set_title('PMT 1 S2 charge distribution vs s2 sum charge')
+            ax.set_xlabel('integrated charge in PMT sum (pe)')
+            ax.set_ylabel('integrated charge in PMT1 (pe)')
+            ## ax.hist(val, bins=100)
+            ax.scatter(s2sumh, val)
         else:
-            ax.set_title('PMT '+str(key)+' S2 relative charge distribution vs PMT1 charge')
-            ax.set_xlabel('pmt1 q (pe)')
+            ax.set_title('PMT '+str(key)+' S2 relative charge distribution vs PMT sum charge')
+            #ax.set_xlabel('pmt1 q (pe)')
+            ax.set_xlabel('integrated charge in PMT sum (pe)')
             ax.set_ylabel('pmt q / pmt1 q')
-            ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
+            #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
+            ax.scatter(s2sumh, val)
             #vals, bins, _ = ax.hist(val, bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
             #useful_bins = np.argwhere(vals>=100)
@@ -103,7 +115,7 @@ def relative_pmt_response():
             #print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativechargeCORRPMT1QFILT_R'+run_number+'.png')
+    figs2.savefig('s2relativechargeCORRPMTSumQ_R'+run_number+'.png')
 
     ## figcal, axcal = plt.subplots()
     ## axcal.errorbar(list(fitVals.keys()),
