@@ -44,7 +44,7 @@ def relative_pmt_response():
                 s1peak = s1evt[s1evt['peak'] == peak]
                 s1sumh.append(s1sevt[s1sevt['peak'] == peak]['ene'].sum())
                 pmt1Q = s1peak[s1peak['npmt'] == 1]['ene'].sum()
-                for pmt in s1peak['npmt']:
+                for pmt in s1peak['npmt'].unique():
                     if pmt != 1:
                         s1hists[pmt].append(s1peak[s1peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
@@ -54,7 +54,7 @@ def relative_pmt_response():
                 s2peak = s2evt[s2evt['peak'] == peak]
                 s2sumh.append(s2sevt[s2sevt['peak'] == peak]['ene'].sum())
                 pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].sum()
-                for pmt in s2peak['npmt']:
+                for pmt in s2peak['npmt'].unique():
                     if pmt != 1:
                         s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
