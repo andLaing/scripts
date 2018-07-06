@@ -66,6 +66,7 @@ def relative_pmt_response():
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
+        print(len(s1sumh), len(val))
         if key == 1:
             ## ax.hist(val, bins=100)
             ax.scatter(s1sumh, val)
