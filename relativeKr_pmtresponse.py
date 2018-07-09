@@ -108,6 +108,7 @@ def relative_pmt_response():
             ax.set_ylabel('pmt q / pmt1 q')
             #ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
+            print('What the fuck??', len(s2sumh), len(val))
             ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(val, bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
