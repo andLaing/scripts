@@ -65,10 +65,11 @@ def relative_pmt_response():
     s2bins = np.arange(0, 1.2, 0.02)
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
+    s1sumh = np.array(s1sumh)
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
             #ax.hist(val, bins=100)
-            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], val[(s1sumh>2) & (s1sumh<15)])
+            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
             ax.set_title('PMT 1 S1 charge distribution vs s1 sum charge')
             ax.set_xlabel('integrated charge in PMT sum (pe)')
             ax.set_ylabel('integrated charge in PMT1 (pe)')
@@ -77,7 +78,7 @@ def relative_pmt_response():
         else:
             #ax.hist(val, bins=s1bins)
             ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], val[(s1sumh>2) & (s1sumh<15)])
+            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
             ax.set_title('PMT '+str(key)+' S1 relative charge distribution vs PMT sum charge')
             ax.set_xlabel('integrated charge in PMT sum (pe)')
             ax.set_ylabel('pmt q / pmt1 q')
@@ -90,6 +91,7 @@ def relative_pmt_response():
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s2pmt1 = np.array(s2hists[1])
+    s2sumh = np.array(s1sumh)
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
             ax.set_title('PMT 1 S2 charge distribution vs s2 sum charge')
@@ -98,7 +100,7 @@ def relative_pmt_response():
             #ax.set_ylabel('AU')
             #ax.set_xlabel('integrated charge in PMT1 (pe)')
             #ax.hist(val, bins=100)
-            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], val[(s2sumh>4000) & (s2sumh<12000)])
+            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
         else:
             #ax.set_title('PMT '+str(key)+' S2 relative charge distribution vs PMT sum charge')
             #ax.set_xlabel('pmt1 q (pe)')
@@ -106,7 +108,7 @@ def relative_pmt_response():
             ax.set_ylabel('pmt q / pmt1 q')
             #ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], val[(s2sumh>4000) & (s2sumh<12000)])
+            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(val, bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
             #useful_bins = np.argwhere(vals>=100)
