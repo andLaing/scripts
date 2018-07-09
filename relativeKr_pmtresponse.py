@@ -42,7 +42,7 @@ def relative_pmt_response():
 
     dst_frame = load_dsts(dst_file_list, 'DST', 'Events')
 
-    dst_evt_iter = np.nditer(dst_frame['event'].unique())
+    dst_evt_list = dst_frame['event'].unique()
 
     #for fn in iglob(pmap_file_base + '*.h5'):
     for fn in pmap_file_list:
@@ -50,9 +50,11 @@ def relative_pmt_response():
         ## This version just using pmt databases
         s1df, s2df, _, s1pmtdf, s2pmtdf = load_pmaps_as_df(fn)
 
-        while not dst_evt_iter.finished and dst_evt_iter[0] in s1pmtdf['event'].unique():
+        common_evts = np.intersect1d(s1pmtdf['event'].unique(), dst_evt_list)
+
+        for evt in common_evts:
         #for evt in s1pmtdf['event'].unique():
-            evt    = dst_evt_iter[0]
+            #evt    = dst_evt_iter[0]
             s1evt  = s1pmtdf[s1pmtdf['event'] == evt]
             s2evt  = s2pmtdf[s2pmtdf['event'] == evt]
             s1sevt = s1df[s1df['event'] == evt]
@@ -77,7 +79,7 @@ def relative_pmt_response():
                     else:
                         s2hists[pmt].append(pmt1Q)
 
-            dst_evt_iter.iternext()
+            #dst_evt_iter.iternext()
 
     ## Make the plots
     s1bins = np.arange(-2, 10, 0.1)
