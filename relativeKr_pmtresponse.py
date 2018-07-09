@@ -68,25 +68,25 @@ def relative_pmt_response():
     s1sumh = np.array(s1sumh)
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
-            #ax.hist(val, bins=100)
-            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
-            ax.set_title('PMT 1 S1 charge distribution vs s1 sum charge')
-            ax.set_xlabel('integrated charge in PMT sum (pe)')
-            ax.set_ylabel('integrated charge in PMT1 (pe)')
-            #ax.set_ylabel('AU)')
-            #ax.set_xlabel('integrated charge in PMT1 (pe)')
+            ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=100)
+            #ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
+            ax.set_title('PMT 1 S1 charge distribution')# vs s1 sum charge')
+            #ax.set_xlabel('integrated charge in PMT sum (pe)')
+            #ax.set_ylabel('integrated charge in PMT1 (pe)')
+            ax.set_ylabel('AU)')
+            ax.set_xlabel('integrated charge in PMT1 (pe)')
         else:
-            #ax.hist(val, bins=s1bins)
+            ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=s1bins)
             ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
-            ax.set_title('PMT '+str(key)+' S1 relative charge distribution vs PMT sum charge')
-            ax.set_xlabel('integrated charge in PMT sum (pe)')
-            ax.set_ylabel('pmt q / pmt1 q')
-            #ax.set_ylabel('AU')
-            #ax.set_xlabel('pmt q / pmt1 q')
+            #ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
+            ax.set_title('PMT '+str(key)+' S1 relative charge distribution')# vs PMT sum charge')
+            #ax.set_xlabel('integrated charge in PMT sum (pe)')
+            #ax.set_ylabel('pmt q / pmt1 q')
+            ax.set_ylabel('AU')
+            ax.set_xlabel('pmt q / pmt1 q')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeCORRs1SUMFILT_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeFILT_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
@@ -94,72 +94,72 @@ def relative_pmt_response():
     s2sumh = np.array(s2sumh)
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
-            ax.set_title('PMT 1 S2 charge distribution vs s2 sum charge')
-            ax.set_xlabel('integrated charge in PMT sum (pe)')
-            ax.set_ylabel('integrated charge in PMT1 (pe)')
-            #ax.set_ylabel('AU')
-            #ax.set_xlabel('integrated charge in PMT1 (pe)')
-            #ax.hist(val, bins=100)
-            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
+            ax.set_title('PMT 1 S2 charge distribution')# vs s2 sum charge')
+            #ax.set_xlabel('integrated charge in PMT sum (pe)')
+            #ax.set_ylabel('integrated charge in PMT1 (pe)')
+            ax.set_ylabel('AU')
+            ax.set_xlabel('integrated charge in PMT1 (pe)')
+            ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=100)
+            #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
         else:
-            #ax.set_title('PMT '+str(key)+' S2 relative charge distribution vs PMT sum charge')
+            ax.set_title('PMT '+str(key)+' S2 relative charge distribution')# vs PMT sum charge')
             #ax.set_xlabel('pmt1 q (pe)')
-            ax.set_xlabel('integrated charge in PMT sum (pe)')
-            ax.set_ylabel('pmt q / pmt1 q')
-            #ax.set_ylabel('AU')
+            #ax.set_xlabel('integrated charge in PMT sum (pe)')
+            ax.set_xlabel('pmt q / pmt1 q')
+            ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            #vals, bins, _ = ax.hist(val, bins=s2bins)
+            #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
+            vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
-            #useful_bins = np.argwhere(vals>=100)
-            #b1 = useful_bins[0][0]
-            #b2 = useful_bins[-1][0]
-            #errs = np.sqrt(vals[b1:b2])
-            #fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2], vals[b1:b2],
-            #                 seed=(vals.sum(), bins[vals.argmax()], 0.1),
-            #                 sigma=errs)
-            #ax.plot(shift_to_bin_centers(bins),
-            #        fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
-            #fitVals[key] = (fvals.values[1], fvals.values[2])
-            #print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
+            useful_bins = np.argwhere(vals>=100)
+            b1 = useful_bins[0][0]
+            b2 = useful_bins[-1][0]
+            errs = np.sqrt(vals[b1:b2])
+            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2], vals[b1:b2],
+                             seed=(vals.sum(), bins[vals.argmax()], 0.1),
+                             sigma=errs)
+            ax.plot(shift_to_bin_centers(bins),
+                    fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
+            fitVals[key] = (fvals.values[1], fvals.values[2])
+            print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativechargeCORRs2SUM_R'+run_number+'.png')
+    figs2.savefig('s2relativechargeFILT_R'+run_number+'.png')
 
-    ## figcal, axcal = plt.subplots()
-    ## axcal.errorbar(list(fitVals.keys()),
-    ##                np.fromiter((x[0] for x in fitVals.values()), np.float),
-    ##                yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
-    ##                label='Average response of PMTs to Kr relative to PMT 1')
-    ## ## Get the calibration info for comparison.
-    ## cal_files = [ fname for fname in sys.argv[2:] ]
-    ## read_params = partial(spr, table_name='FIT_pmt_scaled_dark_pedestal',
-    ##                       param_names=['poisson_mu'])
-    ## ## Assumes ordering, ok?
-    ## for i, fn in enumerate(cal_files):
-    ##     cal_run = fn.split('_')[1]
-    ##     with tb.open_file(fn) as cal_in:
-    ##         pmt1Val = 0
-    ##         pmt1Err = 0
-    ##         cVals = []
-    ##         cErrs = []
-    ##         for sens, (pars, errs) in read_params(cal_in):
-    ##             if sens != 1:
-    ##                 cVals.append(pars['poisson_mu'])
-    ##                 cErrs.append(errs['poisson_mu'])
-    ##             else:
-    ##                 pmt1Val = pars['poisson_mu']
-    ##                 pmt1Err = errs['poisson_mu']
-    ##         normVals = np.array(cVals) / pmt1Val
-    ##         normErrs = normVals * np.sqrt(np.power(np.array(cErrs)/np.array(cVals), 2) +
-    ##                                       np.power(pmt1Err/pmt1Val, 2))
-    ##         axcal.errorbar(list(fitVals.keys()), normVals,
-    ##                        yerr=normErrs, label='Calibration '+cal_run)
-    ## axcal.legend()
-    ## axcal.set_xlabel('PMT sensor ID')
-    ## axcal.set_ylabel('Response relative to that of PMT 1')
-    ## figcal.show()
-    ## figcal.savefig('calPoisKrRelCompStats.png')
+    figcal, axcal = plt.subplots()
+    axcal.errorbar(list(fitVals.keys()),
+                   np.fromiter((x[0] for x in fitVals.values()), np.float),
+                   yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
+                   label='Average response of PMTs to Kr relative to PMT 1')
+    ## Get the calibration info for comparison.
+    cal_files = [ fname for fname in sys.argv[2:] ]
+    read_params = partial(spr, table_name='FIT_pmt_scaled_dark_pedestal',
+                          param_names=['poisson_mu'])
+    ## Assumes ordering, ok?
+    for i, fn in enumerate(cal_files):
+        cal_run = fn.split('_')[1]
+        with tb.open_file(fn) as cal_in:
+            pmt1Val = 0
+            pmt1Err = 0
+            cVals = []
+            cErrs = []
+            for sens, (pars, errs) in read_params(cal_in):
+                if sens != 1:
+                    cVals.append(pars['poisson_mu'])
+                    cErrs.append(errs['poisson_mu'])
+                else:
+                    pmt1Val = pars['poisson_mu']
+                    pmt1Err = errs['poisson_mu']
+            normVals = np.array(cVals) / pmt1Val
+            normErrs = normVals * np.sqrt(np.power(np.array(cErrs)/np.array(cVals), 2) +
+                                          np.power(pmt1Err/pmt1Val, 2))
+            axcal.errorbar(list(fitVals.keys()), normVals,
+                           yerr=normErrs, label='Calibration '+cal_run)
+    axcal.legend()
+    axcal.set_xlabel('PMT sensor ID')
+    axcal.set_ylabel('Response relative to that of PMT 1')
+    figcal.show()
+    figcal.savefig('calPoisKrRelCompStatsFILT.png')
     input('plots good?')
 
                         
