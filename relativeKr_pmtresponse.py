@@ -5,10 +5,13 @@ import tables as tb
 
 import matplotlib.pyplot as plt
 
-from glob      import iglob
+from glob      import glob
 from functools import partial
 
+from vetoedPDFs import sorter_func
+
 from invisible_cities.io.pmaps_io          import load_pmaps_as_df
+from invisible_cities.io.dst_io            import load_dsts
 from invisible_cities.io.channel_param_io  import subset_param_reader as spr
 import invisible_cities.core.fit_functions as fitf
 from invisible_cities.icaro.hst_functions  import shift_to_bin_centers
@@ -22,6 +25,7 @@ def relative_pmt_response():
     """
 
     pmap_file_base = sys.argv[1]
+    dst_file_base  = sys.argv[2]
 
     run_number = pmap_file_base.split('/')[2]
 
@@ -30,12 +34,25 @@ def relative_pmt_response():
     s1sumh  = []
     s2sumh  = []
 
-    for fn in iglob(pmap_file_base + '*.h5'):
+    pmap_sorter = sorter_func(pmap_file_base)
+    pmap_file_list = sorted(glob(pmap_file_base + '*.h5'), key=pmap_sorter)
+
+    dst_sorter = sorter_func(dst_file_base)
+    dst_file_list = sorted(glob(dst_file_base + '*.h5'), key=dst_sorter)
+
+    dst_frame = load_dsts(dst_file_list, 'DST', 'Events')
+
+    dst_evt_iter = np.nditer(dst_frame['event'].unique())
+
+    #for fn in iglob(pmap_file_base + '*.h5'):
+    for fn in pmap_file_list:
 
         ## This version just using pmt databases
         s1df, s2df, _, s1pmtdf, s2pmtdf = load_pmaps_as_df(fn)
 
-        for evt in s1pmtdf['event'].unique():
+        while not dst_evt_iter.finished and dst_evt_iter[0] in s1pmtdf['event'].unique():
+        #for evt in s1pmtdf['event'].unique():
+            evt    = dst_evt_iter[0]
             s1evt  = s1pmtdf[s1pmtdf['event'] == evt]
             s2evt  = s2pmtdf[s2pmtdf['event'] == evt]
             s1sevt = s1df[s1df['event'] == evt]
@@ -59,6 +76,8 @@ def relative_pmt_response():
                         s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                     else:
                         s2hists[pmt].append(pmt1Q)
+
+            dst_evt_iter.iternext()
 
     ## Make the plots
     s1bins = np.arange(-2, 10, 0.1)
@@ -86,7 +105,7 @@ def relative_pmt_response():
             ax.set_xlabel('pmt q / pmt1 q')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeFILT_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeDSTEVTFILT_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
@@ -124,7 +143,7 @@ def relative_pmt_response():
             print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativechargeFILT_R'+run_number+'.png')
+    figs2.savefig('s2relativechargeDSTEVTFILT_R'+run_number+'.png')
 
     figcal, axcal = plt.subplots()
     axcal.errorbar(list(fitVals.keys()),
@@ -132,7 +151,7 @@ def relative_pmt_response():
                    yerr=np.fromiter((x[1] for x in fitVals.values()), np.float),
                    label='Average response of PMTs to Kr relative to PMT 1')
     ## Get the calibration info for comparison.
-    cal_files = [ fname for fname in sys.argv[2:] ]
+    cal_files = [ fname for fname in sys.argv[3:] ]
     read_params = partial(spr, table_name='FIT_pmt_scaled_dark_pedestal',
                           param_names=['poisson_mu'])
     ## Assumes ordering, ok?
