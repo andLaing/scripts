@@ -91,7 +91,7 @@ def relative_pmt_response():
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s2pmt1 = np.array(s2hists[1])
-    s2sumh = np.array(s1sumh)
+    s2sumh = np.array(s2sumh)
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
             ax.set_title('PMT 1 S2 charge distribution vs s2 sum charge')
@@ -108,7 +108,6 @@ def relative_pmt_response():
             ax.set_ylabel('pmt q / pmt1 q')
             #ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
-            print('What the fuck??', len(s2sumh), len(val))
             ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(val, bins=s2bins)
             ## limit fit to region with stat error <= 10% Poisson
