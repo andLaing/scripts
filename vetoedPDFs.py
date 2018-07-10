@@ -118,7 +118,7 @@ def generate_pdfs():
                     pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos, pmap_evts)]
                     hit_overlap_indx  = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
                                                   hit_positions[:, 0])]
-                    hit_indcs = np.arange(hit_positions[:, 0].shape[0])[np.in1d(hit_positions[:, 0]), revent_nos]
+                    hit_indcs = np.arange(hit_positions[:, 0].shape[0])[np.in1d(hit_positions[:, 0], revent_nos)]
                     hindx = 0
                     #print(indx, indx[0][0])
                     #while indx.shape[0] != 0:
