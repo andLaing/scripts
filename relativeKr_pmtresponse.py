@@ -152,7 +152,8 @@ def relative_pmt_response():
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
             ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            corr_coef = np.cov(np.vstack((np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])))[0, 1] / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
+            covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])[0, 1]
+            corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
             print('Sensor ', key, ' correlation coefficient = ', corr_coef)
             ## limit fit to region with stat error <= 10% Poisson
             ## useful_bins = np.argwhere(vals>=100)
