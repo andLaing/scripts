@@ -70,7 +70,8 @@ def generate_pdfs():
         ## For each event [evt_no, list tuples start and end veto areas]
         reduced_pulse_info = []
         for pmf in pmap_files:
-            print(pmf)
+            #print(pmf)
+            sys.stdout.write(pmf)
             try:
                 ## pmap_dict = load_pmaps(pmf)
                 s1s, s2s, _, _, _ = load_pmaps_as_df(pmf)
@@ -97,7 +98,8 @@ def generate_pdfs():
         mask_counter = 0
         pmap_evts = np.fromiter((x[0] for x in reduced_pulse_info), np.int)
         for rawf in raw_files:
-            print(rawf)
+            #print(rawf)
+            sys.stdout.write(rawf)
             if mask_counter >= len(reduced_pulse_info):
                 continue
             try:
