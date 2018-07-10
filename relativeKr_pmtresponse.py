@@ -137,7 +137,7 @@ def relative_pmt_response():
             #ax.set_xlabel('integrated charge in PMT1 (pe)')
             #ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=100)
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            ax.scatter(np.array(hitPMTdist[key])[(s2sumh>2) & (s2sumh<15)], np.array(val)[(s2sumh>2) & (s2sumh<15)])
+            ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
         else:
             ax.set_title('PMT '+str(key)+' S2 relative charge vs pmt-hit XY displacement')
             ax.set_ylabel('pmt q / pmt1 q')
@@ -148,8 +148,7 @@ def relative_pmt_response():
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
-            print(len(val), len(np.array(val)[(s2sumh>2) & (s2sumh<15)]))
-            ax.scatter(np.array(hitPMTdist[key])[(s2sumh>2) & (s2sumh<15)], np.array(val)[(s2sumh>2) & (s2sumh<15)])
+            ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## limit fit to region with stat error <= 10% Poisson
             ## useful_bins = np.argwhere(vals>=100)
             ## b1 = useful_bins[0][0]
