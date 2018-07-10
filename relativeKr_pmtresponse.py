@@ -146,7 +146,7 @@ def relative_pmt_response():
         else:
             ax.set_title('PMT '+str(key)+' S2 relative charge vs pmt-hit XY displacement')
             ax.set_ylabel('pmt q / pmt1 q')
-            ax.set_ylabel('PMT-hit dist. (mm)')
+            ax.set_xlabel('PMT-hit dist. (mm)')
             #ax.set_xlabel('integrated charge in PMT sum (pe)')
             #ax.set_xlabel('pmt q / pmt1 q')
             #ax.set_ylabel('AU')
