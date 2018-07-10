@@ -97,6 +97,7 @@ def relative_pmt_response():
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
     s1sumh = np.array(s1sumh)
+    print(hitPMTdist.keys())
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
             #ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=100)
