@@ -112,7 +112,7 @@ def relative_pmt_response():
             #ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=s1bins)
             ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s1sumh[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
-            ax.scatter(np.array(hitPMTdist[key])[(s1sumh>2) & (s1sumh<15)], np.array(val)[(s1sumh>2) & (s1sumh<15)])
+            ax.scatter(np.array(hitPMTdist[key])[(s1sumh>2) & (s1sumh<15) & (np.abs(val) < 10)], np.array(val)[(s1sumh>2) & (s1sumh<15) & (np.abs(val) < 10)])
             ax.set_title('PMT '+str(key)+' S1 relative charge vs pmt-hit XY displacement')
             #ax.set_xlabel('integrated charge in PMT sum (pe)')
             ax.set_xlabel('PMT-hit dist. (mm)')
@@ -121,7 +121,7 @@ def relative_pmt_response():
             #ax.set_xlabel('pmt q / pmt1 q')
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeDSTEVTFILTCORRPOS_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeDSTEVTFILTCORRPOSZOOM_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
