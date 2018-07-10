@@ -64,7 +64,7 @@ def relative_pmt_response():
             s1sevt = s1df[s1df['event'] == evt]
             s2sevt = s2df[s2df['event'] == evt]
             hit_evt = dst_frame[dst_frame['event'] == evt]
-            if hit_evt['nS2'].iloc[0] == 1:
+            if hit_evt['nS2'].iloc[0] == 1 and hit_evt['nS1'] == 1:
                 ## Not well defined for multi-S2 events
                 hit_x = hit_evt['X'].iloc[0]
                 hit_y = hit_evt['Y'].iloc[0]
@@ -97,7 +97,6 @@ def relative_pmt_response():
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
     s1sumh = np.array(s1sumh)
-    print(hitPMTdist.keys(), hitPMTdist[1])
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
             #ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=100)
