@@ -110,10 +110,10 @@ def generate_pdfs():
                 with tb.open_file(rawf) as raw_in:
                     revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
                     
-                    evt_no = reduced_pulse_info[mask_counter][0]
-                    indx = np.argwhere(revent_nos==evt_no)
-                    pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
-                                                  np.array(reduced_pulse_info)[:, 0])]
+                    #evt_no = reduced_pulse_info[mask_counter][0]
+                    #indx = np.argwhere(revent_nos==evt_no)
+                    pmap_evts = np.array(reduced_pulse_info)[:, 0]
+                    pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos, pmap_evts)]
                     hit_overlap_indx  = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
                                                   hit_positions[:, 0])]
                     hit_indcs = np.arange(hit_positions[:, 0].shape[0])[np.in1d(hit_positions[:, 0]), revent_nos]
