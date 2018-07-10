@@ -73,7 +73,7 @@ def relative_pmt_response():
                     s1sumh.append(s1sevt[s1sevt['peak'] == peak]['ene'].sum())
                     pmt1Q = s1peak[s1peak['npmt'] == 1]['ene'].sum()
                     for pmt in s1peak['npmt'].unique():
-                        hitPMTdist[pmt].append(np.sqrt(np.power(hit_x-pmt_dats[pmt_dats['SensorID'] == pmt].X, 2)+np.power(hit_y-pmt_dats[pmt_dats['SensorID'] == pmt].Y, 2)))
+                        hitPMTdist[pmt].append(np.sqrt(np.power(hit_x-pmt_dats[pmt_dats['SensorID'] == pmt].X.values, 2)+np.power(hit_y-pmt_dats[pmt_dats['SensorID'] == pmt].Y.values, 2)))
                         if pmt != 1:
                             s1hists[pmt].append(s1peak[s1peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                         else:
