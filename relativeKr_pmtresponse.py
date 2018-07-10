@@ -64,7 +64,7 @@ def relative_pmt_response():
             s1sevt = s1df[s1df['event'] == evt]
             s2sevt = s2df[s2df['event'] == evt]
             hit_evt = dst_frame[dst_frame['event'] == evt]
-            if hit_evt['nS2'].iloc[0] == 1 and len(s2evt['peak'].unique()) == 1:
+            if hit_evt['nS2'].iloc[0] == 1 and len(s2evt['peak'].unique()) == 1 and len(s1evt['peak'].unique()) == 1:
                 ## Not well defined for multi-S2 events
                 hit_x = hit_evt['X'].iloc[0]
                 hit_y = hit_evt['Y'].iloc[0]
