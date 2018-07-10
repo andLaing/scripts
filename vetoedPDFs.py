@@ -112,19 +112,30 @@ def generate_pdfs():
                     
                     evt_no = reduced_pulse_info[mask_counter][0]
                     indx = np.argwhere(revent_nos==evt_no)
+                    pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
+                                                  np.array(reduced_pulse_info)[:, 0])]
+                    hit_overlap_indx  = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
+                                                  hit_positions[:, 0])]
+                    hit_indcs = np.arange(hit_positions[:, 0].shape[0])[np.in1d(hit_positions[:, 0]), revent_nos]
+                    hindx = 0
                     #print(indx, indx[0][0])
-                    while indx.shape[0] != 0:
+                    #while indx.shape[0] != 0:
+                    for indx in pmap_overlap_indx:
                         #print(indx[0][0])
                         #rwf = raw_in.root.RD.sipmrwf[indx[0][0]]
-                        cwf = csf.sipm_processing["subtract_mode_calibrate"](raw_in.root.RD.sipmrwf[indx[0][0]], sipm_gains)
+                        ## cwf = csf.sipm_processing["subtract_mode_calibrate"](raw_in.root.RD.sipmrwf[indx[0][0]], sipm_gains)
+                        cwf = csf.sipm_processing["subtract_mode_calibrate"](raw_in.root.RD.sipmrwf[indx], sipm_gains)
                         
                         hist_full_spec += cf.bin_waveforms(cwf, histbins)
                         z_veto = reduced_pulse_info[mask_counter][1]
                         hist_z_vetoed  += cf.bin_waveforms(cwf[:, z_veto], histbins)
 
-                        dst_indx = np.argwhere(hit_positions[:, 0]==evt_no)
-                        if dst_indx.shape[0] != 0:
-                            hit_p = hit_positions[dst_indx[0][0], 1:]
+                        #dst_indx = np.argwhere(hit_positions[:, 0]==evt_no)
+                        #if dst_indx.shape[0] != 0:
+                        if indx in hit_overlap_indx:
+                            ## hit_p = hit_positions[dst_indx[0][0], 1:]
+                            hit_p = hit_positions[hit_indcs[hindx], 1:]
+                            hindx += 1
                             hist_1_vetoed += cf.bin_waveforms(ring_veto(cwf, 1, z_veto,
                                                                         hit_p,
                                                                         sipm_xy),
@@ -139,12 +150,12 @@ def generate_pdfs():
                                                             histbins)
 
                         mask_counter += 1
-                        if mask_counter < len(reduced_pulse_info):
-                            evt_no = reduced_pulse_info[mask_counter][0]
-                            indx = np.argwhere(revent_nos==evt_no)
-                        else:
+                        #if mask_counter < len(reduced_pulse_info):
+                        #    evt_no = reduced_pulse_info[mask_counter][0]
+                        #    indx = np.argwhere(revent_nos==evt_no)
+                        #else:
                             ## dummy evt_no to definitely give no info
-                            indx = np.argwhere(revent_nos==-100)
+                        #    indx = np.argwhere(revent_nos==-100)
                         #print(indx, indx[0][0])
                     full_spec(hist_full_spec)
                     z_vetoed(hist_z_vetoed)
