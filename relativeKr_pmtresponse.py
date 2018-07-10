@@ -148,6 +148,7 @@ def relative_pmt_response():
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
+            print(len(val), len(np.array(val)[(s2sumh>2) & (s2sumh<15)]))
             ax.scatter(np.array(hitPMTdist[key])[(s2sumh>2) & (s2sumh<15)], np.array(val)[(s2sumh>2) & (s2sumh<15)])
             ## limit fit to region with stat error <= 10% Poisson
             ## useful_bins = np.argwhere(vals>=100)
