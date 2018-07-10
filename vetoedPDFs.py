@@ -95,6 +95,7 @@ def generate_pdfs():
                 reduced_pulse_info.append([evtNo, np.logical_and.reduce(mask_list)])
         print('masking info stored')
         mask_counter = 0
+        pmap_evts = np.fromiter((x[0] for x in reduced_pulse_info), np.int)
         for rawf in raw_files:
             print(rawf)
             if mask_counter >= len(reduced_pulse_info):
@@ -112,8 +113,8 @@ def generate_pdfs():
                     
                     #evt_no = reduced_pulse_info[mask_counter][0]
                     #indx = np.argwhere(revent_nos==evt_no)
-                    print(reduced_pulse_info)
-                    pmap_evts = np.array(reduced_pulse_info)[:, 0]
+                    #print(reduced_pulse_info)
+                    #pmap_evts = np.array(reduced_pulse_info)[:, 0]
                     pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos, pmap_evts)]
                     hit_overlap_indx  = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
                                                   hit_positions[:, 0])]
