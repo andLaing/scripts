@@ -112,6 +112,7 @@ def generate_pdfs():
                     
                     #evt_no = reduced_pulse_info[mask_counter][0]
                     #indx = np.argwhere(revent_nos==evt_no)
+                    print(reduced_pulse_info)
                     pmap_evts = np.array(reduced_pulse_info)[:, 0]
                     pmap_overlap_indx = np.arange(revent_nos.shape[0])[np.in1d(revent_nos, pmap_evts)]
                     hit_overlap_indx  = np.arange(revent_nos.shape[0])[np.in1d(revent_nos,
