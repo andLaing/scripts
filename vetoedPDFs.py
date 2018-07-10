@@ -71,7 +71,7 @@ def generate_pdfs():
         reduced_pulse_info = []
         for pmf in pmap_files:
             #print(pmf)
-            sys.stdout.write(pmf)
+            sys.stdout.write(pmf+'\n')
             sys.stdout.flush()
             try:
                 ## pmap_dict = load_pmaps(pmf)
@@ -100,7 +100,7 @@ def generate_pdfs():
         pmap_evts = np.fromiter((x[0] for x in reduced_pulse_info), np.int)
         for rawf in raw_files:
             #print(rawf)
-            sys.stdout.write(rawf)
+            sys.stdout.write(rawf+'\n')
             sys.stdout.flush()
             if mask_counter >= len(reduced_pulse_info):
                 continue
