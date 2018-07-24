@@ -63,6 +63,7 @@ def generate_pdfs():
         one_ring    = HIST(table_name  = 'one_ring_vetoed')
         two_ring    = HIST(table_name  = 'two_ring_vetoed')
         thr_ring    = HIST(table_name  = 'thr_ring_vetoed')
+        inv_thre    = HIST(table_name  = 'thr_ring_avetoed')
 
         ## Hit info
         hit_positions = load_dsts(hit_files, 'DST', 'Events')[['event', 'X', 'Y']].values
@@ -112,6 +113,7 @@ def generate_pdfs():
                 hist_1_vetoed  = np.zeros(shape, dtype=np.int)
                 hist_2_vetoed  = np.zeros(shape, dtype=np.int)
                 hist_3_vetoed  = np.zeros(shape, dtype=np.int)
+                hist_3_aveto   = np.zeros(shape, dtype=np.int)
                 with tb.open_file(rawf) as raw_in:
                     revent_nos = np.fromiter((x[0] for x in raw_in.root.Run.events), np.int)
                     
@@ -150,10 +152,11 @@ def generate_pdfs():
                                                                         hit_p,
                                                                         sipm_xy),
                                                             histbins)
-                            hist_3_vetoed += cf.bin_waveforms(ring_veto(cwf, 3, z_veto,
-                                                                        hit_p,
-                                                                        sipm_xy),
-                                                            histbins)
+                            thrVeto = ring_veto(cwf, 3, z_veto, hit_p, sipm_xy)
+                            hist_3_vetoed += cf.bin_waveforms(thrVeto, histbins)
+                            hist_3_aveto  += cf.bin_waveforms(thrVeto[:, np.invert(z_veto)],
+                                                              histbins)
+                            
 
                         mask_counter += 1
                         #if mask_counter < len(reduced_pulse_info):
@@ -167,7 +170,8 @@ def generate_pdfs():
                     z_vetoed(hist_z_vetoed)
                     one_ring(hist_1_vetoed)
                     two_ring(hist_2_vetoed)
-                    thr_ring(hist_3_vetoed) 
+                    thr_ring(hist_3_vetoed)
+                    inv_thre(hist_3_aveto)
             except tb.HDF5ExtError:
                 print('corrupt file')
                 continue

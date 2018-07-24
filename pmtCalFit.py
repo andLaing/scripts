@@ -135,7 +135,8 @@ def main():
             'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution'}
 
     ## pOut = open('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.dat', 'w')
-    pOut = tb.open_file('pmtCalParOut_R'+fileName[-7:-3]+'_F'+funcName+'.h5', 'w')
+    posRunNo = fileName.find('R')
+    pOut = tb.open_file('pmtCalParOut_R'+fileName[posRunNo+1:posRunNo+5]+'_F'+funcName+'.h5', 'w')
     ## pOut.write('InputFile: '+fileName+'\n')
     ## pOut.write('FuncName: '+funcName+'\n')
     ## pOut.write('Minimum stats: '+str(min_stat)+'\n')
