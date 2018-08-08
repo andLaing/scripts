@@ -112,6 +112,11 @@ def relative_pmt_response():
             ax.set_ylabel('integrated charge in PMT1 (pe)')
             #ax.set_ylabel('AU)')
             #ax.set_xlabel('integrated charge in PMT1 (pe)')
+            sh_hits = np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].shape
+            sh_val = np.array(val)[(s1sumh>2) & (s1sumh<15)].shape
+            covar = np.cov(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_hits[0]), np.array(val)[(s1sumh>2) & (s2sumh<15)].reshape(1, sh_val[0]))[0, 1]
+            corr_coef = covar / (np.std(np.array(val)[(s1sumh>2) & (s1sumh<15)], ddof=1)*np.std(np.array(hitPMTZpos[key])[(s1sumh>2) & (s2sumh<15)], ddof=1))
+            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
         else:
             #ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=s1bins)
             ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
@@ -125,6 +130,11 @@ def relative_pmt_response():
             ax.set_ylabel('pmt q / pmt1 q')
             #ax.set_ylabel('AU')
             #ax.set_xlabel('pmt q / pmt1 q')
+            sh_hits = np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].shape
+            sh_val = np.array(val)[(s1sumh>2) & (s1sumh<15)].shape
+            covar = np.cov(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_hits[0]), np.array(val)[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_val[0]))[0, 1]
+            corr_coef = covar / (np.std(np.array(val)[(s1sumh>2) & (s1sumh<15)], ddof=1)*np.std(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)], ddof=1))
+            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
     plt.tight_layout()
     figs1.show()
     figs1.savefig('s1relativechargeDSTEVTFILTCORRZZOOM_R'+run_number+'.png')
@@ -145,11 +155,11 @@ def relative_pmt_response():
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
-            sh_val = np.array(val)[(s2sumh>4000) & (s2sumh<12000)].shape
-            covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_hits[0]), np.array(val)[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_val[0]))[0, 1]
-            corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
-            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
+            ## sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
+            ## sh_val = np.array(val)[(s2sumh>4000) & (s2sumh<12000)].shape
+            ## covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_hits[0]), np.array(val)[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_val[0]))[0, 1]
+            ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
+            ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
         else:
             ax.set_title('PMT '+str(key)+' S2 relative charge vs z pos')
             ax.set_ylabel('pmt q / pmt1 q')
@@ -162,11 +172,11 @@ def relative_pmt_response():
             #vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
-            sh_val = np.array(val)[(s2sumh>4000) & (s2sumh<12000)].shape
-            covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_hits[0]), np.array(val)[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_val[0]))[0, 1]
-            corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
-            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
+            ## sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
+            ## sh_val = np.array(val)[(s2sumh>4000) & (s2sumh<12000)].shape
+            ## covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_hits[0]), np.array(val)[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_val[0]))[0, 1]
+            ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
+            ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
             ## limit fit to region with stat error <= 10% Poisson
             ## useful_bins = np.argwhere(vals>=100)
             ## b1 = useful_bins[0][0]
