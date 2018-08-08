@@ -114,8 +114,8 @@ def relative_pmt_response():
             #ax.set_xlabel('integrated charge in PMT1 (pe)')
             sh_hits = np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].shape
             sh_val = np.array(val)[(s1sumh>2) & (s1sumh<15)].shape
-            covar = np.cov(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_hits[0]), np.array(val)[(s1sumh>2) & (s2sumh<15)].reshape(1, sh_val[0]))[0, 1]
-            corr_coef = covar / (np.std(np.array(val)[(s1sumh>2) & (s1sumh<15)], ddof=1)*np.std(np.array(hitPMTZpos[key])[(s1sumh>2) & (s2sumh<15)], ddof=1))
+            covar = np.cov(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_hits[0]), np.array(val)[(s1sumh>2) & (s1sumh<15)].reshape(1, sh_val[0]))[0, 1]
+            corr_coef = covar / (np.std(np.array(val)[(s1sumh>2) & (s1sumh<15)], ddof=1)*np.std(np.array(hitPMTZpos[key])[(s1sumh>2) & (s1sumh<15)], ddof=1))
             print('Sensor ', key, ' correlation coefficient = ', corr_coef)
         else:
             #ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=s1bins)
