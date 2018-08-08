@@ -5,6 +5,7 @@ from scipy.signal import find_peaks_cwt
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from functools import partial
+import inspect
 
 from invisible_cities.icaro.hst_functions import display_matrix
 import invisible_cities.reco.spe_response as speR
@@ -21,16 +22,16 @@ scalerChis = []
 
 
 ## Probably shite
-darr = np.zeros(3)
-def scaler(x, mu):
-    global darr
-    return mu * darr
+#darr = np.zeros(3)
+#def scaler(x, mu):
+#    global darr
+#    return mu * darr
 
 
-def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
+def seeds_and_bounds(indx, func, scaler, bins, spec, ped_vals, ped_errs, lim_ped):
 
     global GainSeeds, SigSeeds, useSavedSeeds, scalerChis
-    
+
     norm_seed = spec.sum()
 
     GSeed  = 0
@@ -52,14 +53,16 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
         else:
             GSSeed = np.sqrt(p1.values[2]**2 - ped_vals[2]**2)
 
-    dscale = spec[bins<5].sum() / fitf.gauss(bins[bins<5], *ped_vals).sum()
-    errs = np.sqrt(spec[bins<5])
+    dscale = spec[(bins>=-5) & (bins<=5)].sum() / fitf.gauss(bins[(bins>=-5) & (bins<=5)], *ped_vals).sum()
+    errs = np.sqrt(spec[(bins>=-5) & (bins<=5)])
     errs[errs==0] = 1
-    fscale = fitf.fit(scaler, bins[bins<5], spec[bins<5], (dscale), sigma=errs)
+    fscale = fitf.fit(scaler, bins[(bins>=-5) & (bins<=5)], spec[(bins>=-5) & (bins<=5)], (dscale), sigma=errs)
     scalerChis.append(fscale.chi2)
+    print(fscale.chi2, fscale.values, fscale.errors)
     if scalerChis[-1] >= 500:
         print('Suspect channel index ', indx)
-    muSeed = -np.log(fscale.values[0])
+    ## muSeed = -np.log(fscale.values[0])
+    muSeed = fscale.values[0]
     if muSeed < 0: muSeed = 0.001
 
     if 'gau' in func:
@@ -72,12 +75,17 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
         sd0 = (norm_seed, muSeed, ped_seed, ped_sig_seed, GSeed, GSSeed)
         bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
         #print('Seed check: ', sd0)
-        return sd0, bd0
+        return sd0, bd0, fscale.errors[0]
+    elif 'dxfunc' in func:
+        sd0 = (norm_seed, muSeed, GSeed, GSSeed, 0.1)
+        bd0 = [(0, 0, 0, 0.001, 0), (1e10, 10000, 10000, 10000, 0.3)]
+        print('Seed check: ', sd0)
+        return sd0, bd0, fscale.errors[0]
 
     sd0 = (norm_seed, muSeed, GSeed, GSSeed)
     bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
     print('Seed check: ', sd0)
-    return sd0, bd0
+    return sd0, bd0, fscale.errors[0]
 
 
 def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
@@ -119,18 +127,19 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     ## LED correlated and anticorrelated spectra:
     specsL = np.array(sipmIn.root.HIST.sipm_spe).sum(axis=0)
     specsD = np.array(sipmIn.root.HIST.sipm_dark).sum(axis=0)
-    
+
     ffuncs = {'ngau':speR.poisson_scaled_gaussians(n_gaussians=7),
               'intgau':speR.poisson_scaled_gaussians(min_integral=100),
-              'dfunc':partial(speR.scaled_dark_pedestal, min_integral=100),
-              'conv':partial(speR.dark_convolution, min_integral=100)}
+              'dfunc':partial(speR.scaled_dark_pedestal, min_integral=50),
+              'conv':partial(speR.dark_convolution, min_integral=100),
+              'dxfunc':partial(speR.xscaled_dark_pedestal, min_integral=50)}
 
     ## Loop over the specra:
     outData = []
     outDict = {}
     llchans = []
     if not optimise:
-        fnam = {'ngau':'poisson_scaled_gaussians_ngau', 'intgau':'poisson_scaled_gaussians_min', 'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution'}
+        fnam = {'ngau':'poisson_scaled_gaussians_ngau', 'intgau':'poisson_scaled_gaussians_min', 'dfunc':'scaled_dark_pedestal', 'conv':'dark_convolution', 'dxfunc':'scaled_dark_xtalk'}
         pOut = tb.open_file('sipmCalParOut_R'+str(run_no)+'_F'+func_name+'.h5', 'w')
         param_writer = pIO.channel_param_writer(pOut,
                                                 sensor_type='sipm',
@@ -138,7 +147,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
                                                 param_names=pIO.generic_params)
     ## Extra protection since 3065 is weird
     knownDead = [ 3056, 11009, 12058, 14010, 22028, 22029, 25049 ]
-    specialCheck = [1006, 1007, 3000, 3001, 5010, 7000, 22029, 28056, 28057]
+    specialCheck = [1006, 1007, 3000, 3001, 4004, 5010, 7000, 22029, 28056, 28057]
     for ich, (led, dar) in enumerate(zip(specsL, specsD)):
         if chNos[ich] in knownDead:
             outData.append([chNos[ich], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], 0, 0])
@@ -157,7 +166,7 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
             b2 = valid_bins[-1][0]
         outDict[pIO.generic_params[-2]] = (bins[b1], bins[min(len(bins)-1, b2)])
         # Seed finding
-        pD = find_peaks_cwt(dar, np.arange(2, 20), min_snr=2)
+        pD = np.array([dar.argmax()])##find_peaks_cwt(dar, np.arange(2, 20), min_snr=2)
         if len(pD) == 0:
             ## Try to salvage in case not a masked channel
             ## Masked channels have al entries in one bin.
@@ -184,11 +193,13 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         ped_vals = np.array([gfitRes.values[0] * scale, gfitRes.values[1], gfitRes.values[2]])
 
         binR = bins[b1:b2]
-        global darr
-        darr = dar[b1:b2] * scale
-        darr = darr[binR<5]
-        seeds, bounds = seeds_and_bounds(ich, func_name, bins[b1:b2], led[b1:b2],
-                                         ped_vals, gfitRes.errors, limit_ped)      
+        #global darr
+        #darr = dar[b1:b2] * scale
+        #darr = darr[binR<5]
+        scaler_func = speR.dark_scaler(dar[b1:b2][(bins[b1:b2]>=-5) & (bins[b1:b2]<=5)])
+        seeds, bounds, scErr = seeds_and_bounds(ich, func_name, scaler_func,
+                                         bins[b1:b2], led[b1:b2],
+                                         ped_vals, gfitRes.errors, limit_ped)
         ## Protect low light channels
         if seeds[1] < 0.2:
             llchans.append(chNos[ich])
@@ -202,13 +213,17 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         elif 'conv' in func_name:
             respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
                                      bins=bins[b1:b2])
+        elif 'dxfunc' in func_name:
+            respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
+                                     pedestal_mean=gfitRes.values[1],
+                                     pedestal_sigma=gfitRes.values[2])
         else:
             respF = ffuncs[func_name]
-        
+
         ## The fit
         errs = np.sqrt(led)
         if not 'gau' in func_name:
-            errs = np.sqrt(errs**2 + np.exp(-2 * seeds[1]) * dar)
+            errs = np.sqrt(errs**2 + np.exp(-2 * seeds[1]) * dar * (scErr**2 + 1))
         errs[errs==0] = 0.001
         print('About to fit channel ', chNos[ich])
         rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], seeds, sigma=errs[b1:b2], bounds=bounds)
@@ -218,8 +233,12 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
             ## The offending parameter seems to be the sigma in most cases
             nseed = rfit.values
             nseed[3] = 1.7
-            nbound = [(bounds[0][0], bounds[0][1], bounds[0][2], 1),
-                      (bounds[1][0], bounds[1][1], bounds[1][2], 2.5)]
+            if 'dxfunc' in func_name:
+                nbound = [(bounds[0][0], bounds[0][1], bounds[0][2], 1, bounds[0][4]),
+                          (bounds[1][0], bounds[1][1], bounds[1][2], 2.5, bounds[1][4])]
+            else:
+                nbound = [(bounds[0][0], bounds[0][1], bounds[0][2], 1),
+                          (bounds[1][0], bounds[1][1], bounds[1][2], 2.5)]
             rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], nseed, sigma=errs[b1:b2], bounds=nbound)
             chi = rfit.chi2
         if not optimise:
@@ -304,7 +323,11 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     ##     dbF.write('Minimum statistics: '+str(min_stat)+'\n\n')
     ##     for vals in outData:
     ##         dbF.write(str(vals)+'\n')
-        
+
+
+### New function for tests
+
+
 
 if __name__ == '__main__':
     fit_dataset()

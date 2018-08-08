@@ -44,6 +44,7 @@ def scaler(x, mu):
 ## Seeding points to avoid awkward functions where not necessary
 ## Gain and Gain sigma
 useSavedSeeds = True
+fix_ped = False
 GainSeeds = [21.3, 23.4, 26.0, 25.7, 30.0, 22.7, 25.1, 32.7, 23.1, 25.5, 20.8, 22.0]
 SigSeeds  = [11.3, 11.5, 10.6, 11.9, 13.1, 9.9, 11.0, 14.7, 10.6, 10.4, 9.3, 10.0]
 
@@ -86,7 +87,8 @@ def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
     ftest = fitf.fit(scaler, bins[bins<0], spec[bins<0], (dscale))
     #print('ftest par = ', ftest.values[0], -np.log(ftest.values[0]))
 
-    if 'gau' in func:
+    global fix_ped
+    if 'gau' in func and not fix_ped:
         # There are 6 variables: normalization, pedestal pos., spe mean, poisson mean, pedestal sigma, 1pe sigma
         sd0 = (norm_seed, -np.log(ftest.values[0]), ped_seed, ped_sig_seed, GSeed, GSSeed)
         bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
@@ -106,7 +108,8 @@ def main():
     funcName = sys.argv[2]
     min_stat  = 0
     limit_ped = 10000.
-    fix_ped = False
+    #fix_ped = False
+    global fix_ped
     if len(sys.argv) > 3:
         min_stat = int(sys.argv[3])
         limit_ped = int(sys.argv[4])
@@ -195,9 +198,12 @@ def main():
             respF = ffuncs[funcName](dark_spectrum=dspec[b1:b2] * scale,
                                      bins=bins[b1:b2])
         elif fix_ped:
-            respF = partial(ffuncs[funcName],
-                            pedestal_mean =gfitRes.values[1],
-                            pedestal_sigma=gfitRes.values[2])
+            ## respF = partial(ffuncs[funcName],
+            ##                 pedestal_mean =gfitRes.values[1],
+            ##                 pedestal_sigma=gfitRes.values[2])
+            respF = fitf.fixed_parameters(ffuncs[funcName],
+                                          pedestal_mean =gfitRes.values[1],
+                                          pedestal_sigma=gfitRes.values[2])
         else:
             respF = ffuncs[funcName]
 
@@ -238,7 +244,7 @@ def main():
         outDict[pIO.generic_params[0]] = (rfit.values[0], rfit.errors[0])
         outDict[pIO.generic_params[1]] = (rfit.values[1], rfit.errors[1])
         gIndx = 2
-        if 'gau' in funcName:
+        if 'gau' in funcName and not fix_ped:
             gIndx = 4
         outDict[pIO.generic_params[4]] = (rfit.values[gIndx], rfit.errors[gIndx])
         outDict[pIO.generic_params[5]] = (rfit.values[gIndx+1], rfit.errors[gIndx+1])

@@ -288,3 +288,37 @@ def optSiPMCal(fileNames, intWidths, funcName, min_stat, limit_ped):
     catcher = input('thoughts?')
     if 's' in catcher:
         fig.savefig('sipmOptPlots.png')
+
+
+def sipm_comparison(fileNames, funcName, min_stat, limit_ped):
+
+    run_nos = [f[f.find('R')+1:f.find('R')+5] for f in fileNames]
+    fResults = []
+    for i in range(len(fileNames)):
+        fResults.append(sipmF(fileNames[i], funcName, min_stat, limit_ped))
+
+    axistitles = ['Gain differences', '1pe sigma differences', 'Poisson mu differences', 'Chi2 differences']
+
+    print('Making difference plots...')
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20,6))
+    r0vals = fResults[0]
+    for j in range(1, len(fResults)):
+        for k, (ax, val, axtit) in enumerate(zip(axes.flatten(), fResults[j], axistitles)):
+            valDiff = val - r0vals[k]
+            if k == 0:
+                print('Run ', run_nos[j], np.argwhere(np.abs(valDiff) > 1))
+                ax.hist(valDiff[np.abs(valDiff)<=20], bins=100, log=True,
+                        label='Difference R'+run_nos[j]+' - R'+run_nos[0])
+            else:
+                ax.hist(valDiff, bins=100, log=True,
+                        label='Difference R'+run_nos[j]+' - R'+run_nos[0])
+            if j == 1:
+                ax.set_title(axtit)
+    plt.legend()
+    plt.tight_layout()
+    fig.show()
+    catcher = input('thoughts?')
+    if 's' in catcher:
+        fig.savefig('sipmRunDifferencePlots.png')
+
+    
