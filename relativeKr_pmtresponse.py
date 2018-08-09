@@ -85,11 +85,11 @@ def relative_pmt_response():
                 for peak in s2evt['peak'].unique():
                     s2peak = s2evt[s2evt['peak'] == peak]
                     s2sumh.append(s2sevt[s2sevt['peak'] == peak]['ene'].sum())
-                    if s2sumh[-1] > 4000 and s2sumh < 12000:
-                        pmt1Q = np.array(s2peak[s2peak['npmt'] == 1]['ene'])
+                    if s2sumh[-1] > 4000 and s2sumh[-1] < 12000:
+                        pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].values
                         for pmt in s2peak['npmt'].unique():
                             if pmt != 1:
-                                s2hists[pmt].append(np.array(s2peak[s2peak['npmt'] == pmt]['ene'])/pmt1Q)
+                                s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].values/pmt1Q)
                             else:
                                 s2hists[pmt].append(pmt1Q)
 
