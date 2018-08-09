@@ -85,12 +85,13 @@ def relative_pmt_response():
                 for peak in s2evt['peak'].unique():
                     s2peak = s2evt[s2evt['peak'] == peak]
                     s2sumh.append(s2sevt[s2sevt['peak'] == peak]['ene'].sum())
-                    pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].sum()
-                    for pmt in s2peak['npmt'].unique():
-                        if pmt != 1:
-                            s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
-                        else:
-                            s2hists[pmt].append(pmt1Q)
+                    if s2sumh[-1] > 4000 and s2sumh < 12000:
+                        pmt1Q = np.array(s2peak[s2peak['npmt'] == 1]['ene'])
+                        for pmt in s2peak['npmt'].unique():
+                            if pmt != 1:
+                                s2hists[pmt].append(np.array(s2peak[s2peak['npmt'] == pmt]['ene'])/pmt1Q)
+                            else:
+                                s2hists[pmt].append(pmt1Q)
 
             #dst_evt_iter.iternext()
 
@@ -159,7 +160,8 @@ def relative_pmt_response():
             #ax.set_ylabel('integrated charge in PMT1 (pe)')
             ax.set_ylabel('AU')
             ax.set_xlabel('integrated charge in PMT1 (pe)')
-            ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=100)
+            ## ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=100)
+            ax.hist(np.concatenate(val), bins=100)
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
@@ -177,7 +179,8 @@ def relative_pmt_response():
             ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
-            vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
+            ## vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
+            vals, bins, _ = ax.hist(np.concatenate(val), bins=s2bins)
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
