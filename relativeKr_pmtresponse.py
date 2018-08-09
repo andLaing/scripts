@@ -96,9 +96,9 @@ def relative_pmt_response():
 
     ## Make the plots
     figs0, axes0 = plt.subplots(nrows=1, ncols=2)
-    axes0[0].hist(s1sumh)
+    axes0[0].hist(s1sumh[s1sumh < 30])
     axes0[0].set_title('PMT sum S1 distribution')
-    axes0[1].hist(s2sumh)
+    axes0[1].hist(s2sumh[s2sumh < 20000])
     axes0[1].set_title('PMT sum S2 distribution')
     s1bins = np.arange(-2, 10, 0.1)
     s2bins = np.arange(0, 1.2, 0.02)
