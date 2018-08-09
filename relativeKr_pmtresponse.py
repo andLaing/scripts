@@ -103,13 +103,13 @@ def relative_pmt_response():
     axes0[0].set_title('PMT sum S1 distribution')
     axes0[1].hist(s2sumh[s2sumh < 20000])
     axes0[1].set_title('PMT sum S2 distribution')
-    s1bins = np.arange(-2, 10, 0.1)
-    s2bins = np.arange(0, 1.2, 0.02)
     plt.tight_layout()
     figs0.show()
     figs0.savefig('SumChargeschargeMC_R'+run_number+'.png')
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
+    s1bins = np.arange(-2, 10, 0.1)
+    s2bins = np.arange(0, 2, 0.02)
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
             ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=100)
@@ -189,7 +189,7 @@ def relative_pmt_response():
             ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
             ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
             ## limit fit to region with stat error <= 10% Poisson
-            useful_bins = np.argwhere(vals>=500)
+            useful_bins = np.argwhere(vals>=1000)
             b1 = useful_bins[0][0]
             b2 = useful_bins[-1][0]
             errs = np.sqrt(vals[b1:b2])
