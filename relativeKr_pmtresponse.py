@@ -95,6 +95,8 @@ def relative_pmt_response():
             #dst_evt_iter.iternext()
 
     ## Make the plots
+    s1sumh = np.array(s1sumh)
+    s2sumh = np.array(s2sumh)
     figs0, axes0 = plt.subplots(nrows=1, ncols=2)
     axes0[0].hist(s1sumh[s1sumh < 30])
     axes0[0].set_title('PMT sum S1 distribution')
@@ -107,7 +109,6 @@ def relative_pmt_response():
     figs0.savefig('SumChargeschargeMC_R'+run_number+'.png')
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
-    s1sumh = np.array(s1sumh)
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
             ax.hist(np.array(val)[(s1sumh>2) & (s1sumh<15)], bins=100)
@@ -150,7 +151,6 @@ def relative_pmt_response():
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s2pmt1 = np.array(s2hists[1])
-    s2sumh = np.array(s2sumh)
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
             ax.set_title('PMT 1 S2 charge')
