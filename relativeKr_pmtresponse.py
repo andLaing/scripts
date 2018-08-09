@@ -189,7 +189,7 @@ def relative_pmt_response():
             ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
             ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
             ## limit fit to region with stat error <= 10% Poisson
-            useful_bins = np.argwhere(vals>=1000)
+            useful_bins = np.argwhere(vals>=1500)
             b1 = useful_bins[0][0]
             b2 = useful_bins[-1][0]
             errs = np.sqrt(vals[b1:b2])
