@@ -15,7 +15,6 @@ if len(sys.argv) > 3:
 rms_check = input('Do you want to do a check on the rms? [y/n] ')
 if 'y' in rms_check:
     sipm_rms_check(elec_file)
-    exit()
 
 ## Now you can do a full spectrum comparsison if you have the spectra
 spec_check = input('Do you want to do a spectrum comparison? [y/n] ')

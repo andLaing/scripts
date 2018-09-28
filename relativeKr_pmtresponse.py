@@ -28,7 +28,7 @@ def relative_pmt_response():
     pmap_file_base = sys.argv[1]
     dst_file_base  = sys.argv[2]
 
-    run_number = pmap_file_base.split('/')[2]
+    run_number = pmap_file_base.split('/')[2][1:]
 
     pmt_dats = DB.DataPMT(int(run_number))
 
@@ -88,10 +88,12 @@ def relative_pmt_response():
                     s2peak = s2evt[s2evt['peak'] == peak]
                     s2sumh.append(s2sevt[s2sevt['peak'] == peak]['ene'].sum())
                     if s2sumh[-1] > 4000:# and s2sumh[-1] < 12000:
-                        pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].values
+                        ## pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].values[5:-5]
+                        pmt1Q = s2peak[s2peak['npmt'] == 1]['ene'].sum()
                         for pmt in s2peak['npmt'].unique():
                             if pmt != 1:
-                                s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].values/pmt1Q)
+                                ## s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].values[5:-5]/pmt1Q)
+                                s2hists[pmt].append(s2peak[s2peak['npmt'] == pmt]['ene'].sum()/pmt1Q)
                             else:
                                 s2hists[pmt].append(pmt1Q)
 
@@ -110,8 +112,8 @@ def relative_pmt_response():
     figs0.savefig('SumChargescharge_R'+run_number+'.png')
     figs1, axess1 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s1pmt1 = np.array(s1hists[1])
-    s1bins = np.arange(-2, 10, 0.1)
-    s2bins = np.arange(0, 2, 0.02)
+    s1bins = np.arange(-2, 4, 0.1)
+    s2bins = np.arange(0.4, 1.1, 0.005)
     s1select = (s1sumh>2) & (s1sumh<150)
     for (key, val), ax in zip(s1hists.items(), axess1.flatten()):
         if key == 1:
@@ -131,7 +133,7 @@ def relative_pmt_response():
             corr_coef = covar / (np.std(np.array(val)[s1select], ddof=1)*np.std(np.array(hitPMTZpos[key])[s1select], ddof=1))
             print('Sensor ', key, ' correlation coefficient = ', corr_coef)
         else:
-            ax.hist(np.array(val)[s1select], bins=s1bins)
+            vals, bins, _ = ax.hist(np.array(val)[s1select], bins=s1bins)
             ## ax.scatter(s1pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s1sumh[s1select], np.array(val)[s1select])
             ## ax.scatter(np.array(hitPMTdist[key])[s1select & (np.abs(val) < 10)], np.array(val)[s1select & (np.abs(val) < 10)])
@@ -143,28 +145,44 @@ def relative_pmt_response():
             #ax.set_ylabel('pmt q / pmt1 q')
             ax.set_ylabel('AU')
             ax.set_xlabel('pmt q / pmt1 q')
-            sh_hits = np.array(hitPMTZpos[key])[s1select].shape
-            sh_val = np.array(val)[s1select].shape
-            covar = np.cov(np.array(hitPMTZpos[key])[s1select].reshape(1, sh_hits[0]), np.array(val)[s1select].reshape(1, sh_val[0]))[0, 1]
-            corr_coef = covar / (np.std(np.array(val)[s1select], ddof=1)*np.std(np.array(hitPMTZpos[key])[s1select], ddof=1))
-            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
+            ## sh_hits = np.array(hitPMTZpos[key])[s1select].shape
+            ## sh_val = np.array(val)[s1select].shape
+            ## covar = np.cov(np.array(hitPMTZpos[key])[s1select].reshape(1, sh_hits[0]), np.array(val)[s1select].reshape(1, sh_val[0]))[0, 1]
+            ## corr_coef = covar / (np.std(np.array(val)[s1select], ddof=1)*np.std(np.array(hitPMTZpos[key])[s1select], ddof=1))
+            s1select2 = s1select & (np.array(val) > 0) & (np.array(val) <= 2)
+            print('Sensor ', key, ' mean = ', np.mean(np.array(val)[s1select2]))
+            useful_bins = np.argwhere(vals>=100)
+            b1 = useful_bins[0][0]
+            b2 = useful_bins[-1][0]
+            errs = np.sqrt(vals[b1:b2])
+            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2],
+                             vals[b1:b2],
+                             seed=(vals.sum(), bins[vals.argmax()], 0.1),
+                             sigma=errs)
+            ax.plot(shift_to_bin_centers(bins)[b1:b2],
+                    fvals.fn(shift_to_bin_centers(bins)[b1:b2]))
+            print('Fit S1 '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs1.show()
-    figs1.savefig('s1relativechargeTh_R'+run_number+'.png')
+    figs1.savefig('s1relativechargeThzoom_R'+run_number+'.png')
 
     fitVals = {}
     figs2, axess2 = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     s2pmt1 = np.array(s2hists[1])
     for (key, val), ax in zip(s2hists.items(), axess2.flatten()):
         if key == 1:
-            ax.set_title('PMT 1 S2 charge')
+            ## ax.set_title('PMT 1 S2 charge')
+            ax.set_title('PMT 1 S2 charge vs s2 sum charge')
+            ax.set_xlabel('S2pmt sum charge (pe)')
             #ax.set_xlabel('integrated charge in PMT sum (pe)')
             #ax.set_xlabel('z pos')
-            #ax.set_ylabel('integrated charge in PMT1 (pe)')
-            ax.set_ylabel('AU')
+            ax.set_ylabel('integrated charge in PMT1 (pe)')
+            #ax.set_ylabel('AU')
             ax.set_xlabel('integrated charge in PMT1 (pe)')
             ## ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=100)
-            ax.hist(np.concatenate(val), bins=100)
+            ##ax.hist(np.concatenate(val), bins=100)
+            ## ax.hist(np.array(val)[s2sumh>4000], bins=100)
+            ax.scatter(s2sumh[s2sumh>4000], np.array(val)[s2sumh>4000])
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
@@ -174,38 +192,46 @@ def relative_pmt_response():
             ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
             ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
         else:
-            ax.set_title('PMT '+str(key)+' S2 relative charge')
-            #ax.set_ylabel('pmt q / pmt1 q')
+            ## ax.set_title('PMT '+str(key)+' S2 relative charge')
+            ax.set_title('PMT '+str(key)+' S2 relative charge vs pmt sum')
+            ax.set_ylabel('pmt q / pmt1 q')
             #ax.set_xlabel('zpos')
-            #ax.set_xlabel('integrated charge in PMT sum (pe)')
-            ax.set_xlabel('pmt q / pmt1 q')
-            ax.set_ylabel('AU')
+            ax.set_xlabel('integrated charge in PMT sum (pe)')
+            #ax.set_xlabel('pmt q / pmt1 q')
+            #ax.set_ylabel('AU')
             #ax.scatter(s2pmt1[np.abs(val) < 10], np.array(val)[np.abs(val) < 10])
             #ax.scatter(s2sumh[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             ## vals, bins, _ = ax.hist(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], bins=s2bins)
-            vals, bins, _ = ax.hist(np.concatenate(val), bins=s2bins)
+            ## vals, bins, _ = ax.hist(np.concatenate(val), bins=s2bins)
+            ## vals, bins, _ = ax.hist(np.array(val)[s2sumh>4000], bins=s2bins)
+            ax.scatter(s2sumh[s2sumh>4000], np.array(val)[s2sumh>4000])
             ## ax.scatter(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
             #ax.scatter(np.array(hitPMTZpos[key])[(s2sumh>4000) & (s2sumh<12000)], np.array(val)[(s2sumh>4000) & (s2sumh<12000)])
+            sh_sum = s2sumh[s2sumh>4000].shape
+            sh_vals = np.array(val)[s2sumh>4000].shape
+            covar = np.cov(s2sumh[s2sumh>4000].reshape(1, sh_sum[0]), np.array(val)[s2sumh>4000].reshape(1, sh_vals[0]))[0, 1]
+            corr_coef = covar / (np.std(np.array(val)[s2sumh>4000], ddof=1)*np.std(s2sumh[s2sumh>4000], ddof=1))
             ## sh_hits = np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].shape
             ## sh_val = np.array(val)[(s2sumh>4000) & (s2sumh<12000)].shape
             ## covar = np.cov(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_hits[0]), np.array(val)[(s2sumh>4000) & (s2sumh<12000)].reshape(1, sh_val[0]))[0, 1]
             ## corr_coef = covar / (np.std(np.array(val)[(s2sumh>4000) & (s2sumh<12000)], ddof=1)*np.std(np.array(hitPMTdist[key])[(s2sumh>4000) & (s2sumh<12000)], ddof=1))
-            ## print('Sensor ', key, ' correlation coefficient = ', corr_coef)
+            print('Sensor ', key, ' correlation coefficient = ', corr_coef)
             ## limit fit to region with stat error <= 10% Poisson
-            useful_bins = np.argwhere(vals>=1500)
-            b1 = useful_bins[0][0]
-            b2 = useful_bins[-1][0]
-            errs = np.sqrt(vals[b1:b2])
-            fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2], vals[b1:b2],
-                             seed=(vals.sum(), bins[vals.argmax()], 0.1),
-                             sigma=errs)
-            ax.plot(shift_to_bin_centers(bins),
-                    fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
-            fitVals[key] = (fvals.values[1], fvals.values[2])
-            print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
+            ## useful_bins = np.argwhere(vals>=200)
+            ## b1 = useful_bins[0][0]
+            ## b2 = useful_bins[-1][0]
+            ## errs = np.sqrt(vals[b1:b2])
+            ## print('Seed check: ', (vals.sum(), bins[vals.argmax()], 0.02))
+            ## fvals = fitf.fit(fitf.gauss, shift_to_bin_centers(bins)[b1:b2], vals[b1:b2],
+            ##                  seed=(vals.sum(), bins[vals.argmax()], 0.02),
+            ##                  sigma=errs, bounds=[(0, 0, 0.00001), (1e10, 2, 3)])
+            ## ax.plot(shift_to_bin_centers(bins),
+            ##         fitf.gauss(shift_to_bin_centers(bins), *fvals.values))
+            ## fitVals[key] = (fvals.values[1], fvals.values[2])
+            ## print('Fit PMT '+str(key), fvals.values, fvals.errors, fvals.chi2)
     plt.tight_layout()
     figs2.show()
-    figs2.savefig('s2relativechargeThBINBYBIN_R'+run_number+'.png')
+    figs2.savefig('s2relativechargeThvsSum_R'+run_number+'.png')
 
     ## figcal, axcal = plt.subplots()
     ## axcal.errorbar(list(fitVals.keys()),
