@@ -15,10 +15,14 @@ import invisible_cities.io.channel_param_io as pIO
 
 from pmtCalFit import weighted_av_std
 
+from invisible_cities.reco.calib_functions import seeds_and_bounds
+from invisible_cities.reco.calib_functions import dark_scaler
+from invisible_cities.reco.calib_functions import SensorType
+
 useSavedSeeds = True
-GainSeeds = []
-SigSeeds  = []
-scalerChis = []
+## GainSeeds = []
+## SigSeeds  = []
+## scalerChis = []
 
 
 ## Probably shite
@@ -28,70 +32,70 @@ scalerChis = []
 #    return mu * darr
 
 
-def seeds_and_bounds(indx, func, scaler, bins, spec, ped_vals, ped_errs, lim_ped):
+## def seeds_and_bounds(indx, func, scaler, bins, spec, ped_vals, ped_errs, lim_ped):
 
-    global GainSeeds, SigSeeds, useSavedSeeds, scalerChis
+##     global GainSeeds, SigSeeds, useSavedSeeds, scalerChis
 
-    norm_seed = spec.sum()
+##     norm_seed = spec.sum()
 
-    GSeed  = 0
-    GSSeed = 0
-    if useSavedSeeds:
-        GSeed  = GainSeeds[indx]
-        GSSeed = SigSeeds[indx]
-    else:
-        pDL = find_peaks_cwt(spec, np.arange(4, 20), min_snr=1, noise_perc=5)
-        p1pe = pDL[(bins[pDL]>10) & (bins[pDL]<20)]
-        if len(p1pe) == 0:
-            p1pe = np.argwhere(bins==15)[0][0]
-        else:
-            p1pe = p1pe[spec[p1pe].argmax()]
-        p1 = fitf.fit(fitf.gauss, bins[p1pe-5:p1pe+5], spec[p1pe-5:p1pe+5], seed=(spec[p1pe], bins[p1pe], 3.))
-        GSeed = p1.values[1] - ped_vals[1]
-        if p1.values[2] <= ped_vals[2]:
-            GSSeed = 0.5
-        else:
-            GSSeed = np.sqrt(p1.values[2]**2 - ped_vals[2]**2)
+##     GSeed  = 0
+##     GSSeed = 0
+##     if useSavedSeeds:
+##         GSeed  = GainSeeds[indx]
+##         GSSeed = SigSeeds[indx]
+##     else:
+##         pDL = find_peaks_cwt(spec, np.arange(4, 20), min_snr=1, noise_perc=5)
+##         p1pe = pDL[(bins[pDL]>10) & (bins[pDL]<20)]
+##         if len(p1pe) == 0:
+##             p1pe = np.argwhere(bins==15)[0][0]
+##         else:
+##             p1pe = p1pe[spec[p1pe].argmax()]
+##         p1 = fitf.fit(fitf.gauss, bins[p1pe-5:p1pe+5], spec[p1pe-5:p1pe+5], seed=(spec[p1pe], bins[p1pe], 3.))
+##         GSeed = p1.values[1] - ped_vals[1]
+##         if p1.values[2] <= ped_vals[2]:
+##             GSSeed = 0.5
+##         else:
+##             GSSeed = np.sqrt(p1.values[2]**2 - ped_vals[2]**2)
 
-    dscale = spec[(bins>=-5) & (bins<=5)].sum() / fitf.gauss(bins[(bins>=-5) & (bins<=5)], *ped_vals).sum()
-    errs = np.sqrt(spec[(bins>=-5) & (bins<=5)])
-    errs[errs==0] = 1
-    fscale = fitf.fit(scaler, bins[(bins>=-5) & (bins<=5)], spec[(bins>=-5) & (bins<=5)], (dscale), sigma=errs)
-    scalerChis.append(fscale.chi2)
-    print(fscale.chi2, fscale.values, fscale.errors)
-    if scalerChis[-1] >= 500:
-        print('Suspect channel index ', indx)
-    ## muSeed = -np.log(fscale.values[0])
-    muSeed = fscale.values[0]
-    if muSeed < 0: muSeed = 0.001
+##     dscale = spec[(bins>=-5) & (bins<=5)].sum() / fitf.gauss(bins[(bins>=-5) & (bins<=5)], *ped_vals).sum()
+##     errs = np.sqrt(spec[(bins>=-5) & (bins<=5)])
+##     errs[errs==0] = 1
+##     fscale = fitf.fit(scaler, bins[(bins>=-5) & (bins<=5)], spec[(bins>=-5) & (bins<=5)], (dscale), sigma=errs)
+##     scalerChis.append(fscale.chi2)
+##     print(fscale.chi2, fscale.values, fscale.errors)
+##     if scalerChis[-1] >= 500:
+##         print('Suspect channel index ', indx)
+##     ## muSeed = -np.log(fscale.values[0])
+##     muSeed = fscale.values[0]
+##     if muSeed < 0: muSeed = 0.001
 
-    if 'gau' in func:
-        ped_seed = ped_vals[1]
-        ped_min  = ped_seed - lim_ped * ped_errs[1]
-        ped_max  = ped_seed + lim_ped * ped_errs[1]
-        ped_sig_seed = ped_vals[2]
-        ped_sig_min  = max(0.001, ped_sig_seed - lim_ped * ped_errs[2])
-        ped_sig_max  = ped_sig_seed + lim_ped * ped_errs[2]
-        sd0 = (norm_seed, muSeed, ped_seed, ped_sig_seed, GSeed, GSSeed)
-        bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
-        #print('Seed check: ', sd0)
-        return sd0, bd0, fscale.errors[0]
-    elif 'dxfunc' in func:
-        sd0 = (norm_seed, muSeed, GSeed, GSSeed, 0.1)
-        bd0 = [(0, 0, 0, 0.001, 0), (1e10, 10000, 10000, 10000, 0.3)]
-        print('Seed check: ', sd0)
-        return sd0, bd0, fscale.errors[0]
+##     if 'gau' in func:
+##         ped_seed = ped_vals[1]
+##         ped_min  = ped_seed - lim_ped * ped_errs[1]
+##         ped_max  = ped_seed + lim_ped * ped_errs[1]
+##         ped_sig_seed = ped_vals[2]
+##         ped_sig_min  = max(0.001, ped_sig_seed - lim_ped * ped_errs[2])
+##         ped_sig_max  = ped_sig_seed + lim_ped * ped_errs[2]
+##         sd0 = (norm_seed, muSeed, ped_seed, ped_sig_seed, GSeed, GSSeed)
+##         bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
+##         #print('Seed check: ', sd0)
+##         return sd0, bd0, fscale.errors[0]
+##     elif 'dxfunc' in func:
+##         sd0 = (norm_seed, muSeed, GSeed, GSSeed, 0.1)
+##         bd0 = [(0, 0, 0, 0.001, 0), (1e10, 10000, 10000, 10000, 0.3)]
+##         print('Seed check: ', sd0)
+##         return sd0, bd0, fscale.errors[0]
 
-    sd0 = (norm_seed, muSeed, GSeed, GSSeed)
-    bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
-    print('Seed check: ', sd0)
-    return sd0, bd0, fscale.errors[0]
+##     sd0 = (norm_seed, muSeed, GSeed, GSSeed)
+##     bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
+##     print('Seed check: ', sd0)
+##     return sd0, bd0, fscale.errors[0]
 
 
 def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
 
     """ Check new fit function on SiPM spectra """
-    global useSavedSeeds, GainSeeds, SigSeeds
+    global useSavedSeeds#, GainSeeds, SigSeeds
 
     file_name = dataF
     func_name = funcName
@@ -112,13 +116,13 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     run_no = file_name[file_name.find('R')+1:file_name.find('R')+5]
     run_no = int(run_no)
     chNos = DB.DataSiPM(run_no).SensorID.values
-    if useSavedSeeds:
-        dodgy = DB.DataSiPM(run_no).index[DB.DataSiPM(run_no).Active==0].values
-        GainSeeds = DB.DataSiPM(run_no).adc_to_pes.values
-        SigSeeds  = DB.DataSiPM(run_no).Sigma.values
+    ## if useSavedSeeds:
+    ##     dodgy = DB.DataSiPM(run_no).index[DB.DataSiPM(run_no).Active==0].values
+        ## GainSeeds = DB.DataSiPM(run_no).adc_to_pes.values
+        ## SigSeeds  = DB.DataSiPM(run_no).Sigma.values
         ## Give generic values to previously dead or dodgy channels
-        GainSeeds[dodgy] = 15
-        SigSeeds[dodgy] = 2
+        ##GainSeeds[dodgy] = 15
+        ##SigSeeds[dodgy] = 2
 
     sipmIn = tb.open_file(file_name, 'r')
 
@@ -131,8 +135,8 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
     ffuncs = {'ngau':speR.poisson_scaled_gaussians(n_gaussians=7),
               'intgau':speR.poisson_scaled_gaussians(min_integral=100),
               'dfunc':partial(speR.scaled_dark_pedestal, min_integral=50),
-              'conv':partial(speR.dark_convolution, min_integral=100),
-              'dxfunc':partial(speR.xscaled_dark_pedestal, min_integral=50)}
+              'conv':partial(speR.dark_convolution, min_integral=100)}#,
+              #'dxfunc':partial(speR.xscaled_dark_pedestal, min_integral=50)}
 
     ## Loop over the specra:
     outData = []
@@ -145,8 +149,8 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
                                                 sensor_type='sipm',
                                                 func_name=fnam[func_name],
                                                 param_names=pIO.generic_params)
-    ## Extra protection since 3065 is weird
-    knownDead = [ 3056, 11009, 12058, 14010, 22028, 22029, 25049 ]
+    ## Extra protection since 3056 is weird
+    knownDead = [ 3056, 11009, 14010, 25049 ]
     specialCheck = [1006, 1007, 3000, 3001, 4004, 5010, 7000, 22029, 28056, 28057]
     for ich, (led, dar) in enumerate(zip(specsL, specsD)):
         if chNos[ich] in knownDead:
@@ -196,15 +200,30 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         #global darr
         #darr = dar[b1:b2] * scale
         #darr = darr[binR<5]
-        scaler_func = speR.dark_scaler(dar[b1:b2][(bins[b1:b2]>=-5) & (bins[b1:b2]<=5)])
-        seeds, bounds, scErr = seeds_and_bounds(ich, func_name, scaler_func,
+        ## scaler_func = speR.dark_scaler(dar[b1:b2][(bins[b1:b2]>=-5) & (bins[b1:b2]<=5)])
+        ## seeds, bounds, scErr = seeds_and_bounds(ich, func_name, scaler_func,
+        ##                                  bins[b1:b2], led[b1:b2],
+        ##                                  ped_vals, gfitRes.errors, limit_ped)
+
+        scale_func = dark_scaler(dar[b1:b2][(bins[b1:b2]>=-5) & (bins[b1:b2]<=5)])
+        seeds, bounds = seeds_and_bounds(SensorType.SIPM,
+                                         run_no,
+                                         ich, scale_func,
                                          bins[b1:b2], led[b1:b2],
-                                         ped_vals, gfitRes.errors, limit_ped)
+                                         ped_vals, gfitRes.errors, func_name)
         ## Protect low light channels
         if seeds[1] < 0.2:
             llchans.append(chNos[ich])
             ## Dodgy setting of high charge dark bins to zero
             dar[bins>gfitRes.values[1] + 3*gfitRes.values[2]] = 0
+        if seeds[-2] == 0:
+            ## Channel was bad but maybe recovered
+            seeds, bounds = seeds_and_bounds(SensorType.SIPM,
+                                            run_no,
+                                            ich, scale_func,
+                                            bins[b1:b2], led[b1:b2],
+                                            ped_vals, gfitRes.errors,
+                                            func_name, False)
         ##
         if 'dfunc' in func_name:
             respF = ffuncs[func_name](dark_spectrum=dar[b1:b2] * scale,
@@ -223,11 +242,23 @@ def fit_dataset(dataF=None, funcName=None, minStat=None, limitPed=None):
         ## The fit
         errs = np.sqrt(led)
         if not 'gau' in func_name:
-            errs = np.sqrt(errs**2 + np.exp(-2 * seeds[1]) * dar * (scErr**2 + 1))
+            errs = np.sqrt(errs**2 + np.exp(-2 * seeds[1]) * dar * ((0.1*seeds[1])**2 + 1))
         errs[errs==0] = 0.001
         print('About to fit channel ', chNos[ich])
-        rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], seeds, sigma=errs[b1:b2], bounds=bounds)
-        chi = rfit.chi2
+        try:
+            rfit = fitf.fit(respF, bins[b1:b2], led[b1:b2], seeds, sigma=errs[b1:b2], bounds=bounds)
+            chi = rfit.chi2
+        except RuntimeError:
+            print('Fit doesnt converge, saving zeros for channel ', chNos[ich])
+            outData.append([0., 0., 0., 0., 0., 0., 0.])
+            if not optimise:
+                plt.errorbar(bins, led, xerr=0.5*np.diff(bins)[0], yerr=errs, fmt='b.')
+                plt.title('Spe distribution for channel '+str(chNos[ich]))
+                plt.xlabel('ADC')
+                plt.ylabel('AU')
+                plt.show()
+            continue
+            
         ## Attempt to catch bad fits and refit (currently only valid for dfunc and conv)
         if chi >= 7 or rfit.values[3] >= 2.5 or rfit.values[3] <= 1:
             ## The offending parameter seems to be the sigma in most cases

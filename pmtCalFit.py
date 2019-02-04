@@ -11,6 +11,10 @@ import invisible_cities.reco.spe_response  as speR
 from invisible_cities.database import load_db as DB
 import invisible_cities.io.channel_param_io as pIO
 
+from invisible_cities.reco.calib_functions import seeds_and_bounds
+from invisible_cities.reco.calib_functions import dark_scaler
+from invisible_cities.reco.calib_functions import SensorType
+
 """
 run as:
 python pmtCalFit.py <input file name> <function name: ngau, intgau, dfunc, conv> opt: <minimum stats per bin to set fit limits> <number of sigmas for bound on pedestal parameters>
@@ -36,69 +40,69 @@ def weighted_av_std(values, weights):
 
 
 ## Probably shite
-darr = np.zeros(3)
-def scaler(x, mu):
-    global darr
-    return mu * darr
+## darr = np.zeros(3)
+## def scaler(x, mu):
+##     global darr
+##     return mu * darr
 
-## Seeding points to avoid awkward functions where not necessary
-## Gain and Gain sigma
+## ## Seeding points to avoid awkward functions where not necessary
+## ## Gain and Gain sigma
 useSavedSeeds = True
 fix_ped = False
-GainSeeds = [21.3, 23.4, 26.0, 25.7, 30.0, 22.7, 25.1, 32.7, 23.1, 25.5, 20.8, 22.0]
-SigSeeds  = [11.3, 11.5, 10.6, 11.9, 13.1, 9.9, 11.0, 14.7, 10.6, 10.4, 9.3, 10.0]
+## GainSeeds = [21.3, 23.4, 26.0, 25.7, 30.0, 22.7, 25.1, 32.7, 23.1, 25.5, 20.8, 22.0]
+## SigSeeds  = [11.3, 11.5, 10.6, 11.9, 13.1, 9.9, 11.0, 14.7, 10.6, 10.4, 9.3, 10.0]
 
 
-def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
+## def seeds_and_bounds(indx, func, bins, spec, ped_vals, ped_errs, lim_ped):
 
-    norm_seed = spec.sum()
+##     norm_seed = spec.sum()
     
-    ped_seed = ped_vals[1]
-    ped_min  = ped_seed - lim_ped * ped_errs[1]
-    ped_max  = ped_seed + lim_ped * ped_errs[1]
-    #print('ped check: ', ped_seed, ped_min, ped_max)
+##     ped_seed = ped_vals[1]
+##     ped_min  = ped_seed - lim_ped * ped_errs[1]
+##     ped_max  = ped_seed + lim_ped * ped_errs[1]
+##     #print('ped check: ', ped_seed, ped_min, ped_max)
 
-    ped_sig_seed = ped_vals[2]
-    ped_sig_min  = max(0.001, ped_sig_seed - lim_ped * ped_errs[2])
-    ped_sig_max  = ped_sig_seed + lim_ped * ped_errs[2]
-    #print('rms check: ', ped_sig_seed, ped_sig_min, ped_sig_max)
+##     ped_sig_seed = ped_vals[2]
+##     ped_sig_min  = max(0.001, ped_sig_seed - lim_ped * ped_errs[2])
+##     ped_sig_max  = ped_sig_seed + lim_ped * ped_errs[2]
+##     #print('rms check: ', ped_sig_seed, ped_sig_min, ped_sig_max)
 
-    ## Remove the ped prediction and check try to get seeds for 1pe
-    # first scale the dark pedestal
-    dscale = spec[bins<0].sum() / fitf.gauss(bins[bins<0], *ped_vals).sum()
-    GSeed  = 0
-    GSSeed = 0
-    if not useSavedSeeds:
-        l_subtract_d = spec - fitf.gauss(bins, *ped_vals) * dscale
-        pDL = find_peaks_cwt(l_subtract_d, np.arange(10, 20), min_snr=1, noise_perc=5)
-        p1pe = pDL[(bins[pDL]>15) & (bins[pDL]<50)]
-        p1pe = p1pe[spec[p1pe].argmax()]
-        ## Now fit a Gaussian
-        fgaus = fitf.fit(fitf.gauss, bins[p1pe-10:p1pe+10], l_subtract_d[p1pe-10:p1pe+10],
-                        (l_subtract_d[p1pe-10:p1pe+10].max(), bins[p1pe], 7), sigma=np.sqrt(l_subtract_d[p1pe-10:p1pe+10]))
-        #print('1pe fit check: ', fgaus.values, fgaus.errors)
-        GSeed  = fgaus.values[1]-ped_vals[1]
-        GSSeed = np.sqrt(fgaus.values[2]**2 - ped_vals[2]**2)
-    else:
-        GSeed  = GainSeeds[indx]
-        GSSeed = SigSeeds[indx]
+##     ## Remove the ped prediction and check try to get seeds for 1pe
+##     # first scale the dark pedestal
+##     dscale = spec[bins<0].sum() / fitf.gauss(bins[bins<0], *ped_vals).sum()
+##     GSeed  = 0
+##     GSSeed = 0
+##     if not useSavedSeeds:
+##         l_subtract_d = spec - fitf.gauss(bins, *ped_vals) * dscale
+##         pDL = find_peaks_cwt(l_subtract_d, np.arange(10, 20), min_snr=1, noise_perc=5)
+##         p1pe = pDL[(bins[pDL]>15) & (bins[pDL]<50)]
+##         p1pe = p1pe[spec[p1pe].argmax()]
+##         ## Now fit a Gaussian
+##         fgaus = fitf.fit(fitf.gauss, bins[p1pe-10:p1pe+10], l_subtract_d[p1pe-10:p1pe+10],
+##                         (l_subtract_d[p1pe-10:p1pe+10].max(), bins[p1pe], 7), sigma=np.sqrt(l_subtract_d[p1pe-10:p1pe+10]))
+##         #print('1pe fit check: ', fgaus.values, fgaus.errors)
+##         GSeed  = fgaus.values[1]-ped_vals[1]
+##         GSSeed = np.sqrt(fgaus.values[2]**2 - ped_vals[2]**2)
+##     else:
+##         GSeed  = GainSeeds[indx]
+##         GSSeed = SigSeeds[indx]
         
-    ## Test scale
-    ftest = fitf.fit(scaler, bins[bins<0], spec[bins<0], (dscale))
-    #print('ftest par = ', ftest.values[0], -np.log(ftest.values[0]))
+##     ## Test scale
+##     ftest = fitf.fit(scaler, bins[bins<0], spec[bins<0], (dscale))
+##     #print('ftest par = ', ftest.values[0], -np.log(ftest.values[0]))
 
-    global fix_ped
-    if 'gau' in func and not fix_ped:
-        # There are 6 variables: normalization, pedestal pos., spe mean, poisson mean, pedestal sigma, 1pe sigma
-        sd0 = (norm_seed, -np.log(ftest.values[0]), ped_seed, ped_sig_seed, GSeed, GSSeed)
-        bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
-        #print('Seed check: ', sd0)
-        return sd0, bd0
-    ## The other functions only have four parameters: normalization, spe mean, poisson mean, 1pe sigma
-    sd0 = (norm_seed, -np.log(ftest.values[0]), GSeed, GSSeed)
-    bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
-    print('Seed check: ', sd0)
-    return sd0, bd0
+##     global fix_ped
+##     if 'gau' in func and not fix_ped:
+##         # There are 6 variables: normalization, pedestal pos., spe mean, poisson mean, pedestal sigma, 1pe sigma
+##         sd0 = (norm_seed, -np.log(ftest.values[0]), ped_seed, ped_sig_seed, GSeed, GSSeed)
+##         bd0 = [(0, 0, ped_min, ped_sig_min, 0, 0.001), (1e10, 10000, ped_max, ped_sig_max, 10000, 10000)]
+##         #print('Seed check: ', sd0)
+##         return sd0, bd0
+##     ## The other functions only have four parameters: normalization, spe mean, poisson mean, 1pe sigma
+##     sd0 = (norm_seed, -np.log(ftest.values[0]), GSeed, GSSeed)
+##     bd0 = [(0, 0, 0, 0.001), (1e10, 10000, 10000, 10000)]
+##     print('Seed check: ', sd0)
+##     return sd0, bd0
     
 
 def main():
@@ -210,13 +214,21 @@ def main():
         ## Take into account the scale in seed finding (could affect Poisson mu)????
         ped_vals = np.array([gfitRes.values[0] * scale, gfitRes.values[1], gfitRes.values[2]])
 
+        ## binR = bins[b1:b2]
+        ## global darr
+        ## darr = dspec[b1:b2] * scale
+        ## darr = darr[binR<0]
+        ## seeds, bounds = seeds_and_bounds(i, funcName, bins[b1:b2], lspec[b1:b2],
+        ##                                  ped_vals, gfitRes.errors, limit_ped)
         binR = bins[b1:b2]
-        global darr
         darr = dspec[b1:b2] * scale
-        darr = darr[binR<0]
-        seeds, bounds = seeds_and_bounds(i, funcName, bins[b1:b2], lspec[b1:b2],
-                                         ped_vals, gfitRes.errors, limit_ped)
-
+        scale_func = dark_scaler(darr[binR<0])
+        seeds, bounds = seeds_and_bounds(SensorType.PMT,
+                                         int(fileName[posRunNo+1:posRunNo+5]),
+                                         i, scale_func,
+                                         bins[b1:b2], lspec[b1:b2],
+                                         ped_vals, gfitRes.errors, funcName)
+        print('Seed check: ', seeds)
         ## The fit
         errs = np.sqrt(lspec[b1:b2])
         if not 'gau' in funcName:

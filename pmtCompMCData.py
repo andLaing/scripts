@@ -54,23 +54,25 @@ def compare_mc():
         print('...data got')
         for evt, pmap in pmaps.items():
 
-            if len(pmap.s2s) == 1:
+            if len(pmap.s2s) == 1 and len(pmap.s1s) == 1:
                 try:
                     mc_hit[mc_hit.event==evt].X.values[0]
                     hx = mc_hit[mc_hit.event==evt].X.values
                     hy = mc_hit[mc_hit.event==evt].Y.values
                     hz = mc_hit[mc_hit.event==evt].Z.values
+                    hq = mc_hit[mc_hit.event==evt].Q.values
                     #for s2 in pmap.s2s:
                     s2 = pmap.s2s[0]
                     rs2 = pmf.rebin_peak(s2, 2)
-                    if hz.shape[0] == len(rs2.times):
-                        new_row = [s2.pmts.waveform(x).sum() for x in range(12)]
-                        cn_row  = [life_correction(hx, hy, hz, rs2.pmts.waveform(x)) for x in range(12)]
-                        new_row = np.column_stack((new_row, cn_row)).flatten()
-                        ## new_row.insert(0, s2.total_energy)
-                        new_row = np.insert(new_row, 0, s2.total_energy)
+                    p_z = (rs2.times - pmap.s1s[0].time_at_max_energy)/1000
+                    #if hz.shape[0] == len(rs2.times):
+                    new_row = [s2.pmts.waveform(x).sum() for x in range(12)]
+                    cn_row  = [life_correction(hx, hy, hz, hq, p_z, rs2.pmts.waveform(x)) for x in range(12)]
+                    new_row = np.column_stack((new_row, cn_row)).flatten()
+                    ## new_row.insert(0, s2.total_energy)
+                    new_row = np.insert(new_row, 0, s2.total_energy)
                     
-                        mc_sums.loc[len(mc_sums)] = list(new_row)
+                    mc_sums.loc[len(mc_sums)] = list(new_row)
                 except IndexError:
                     continue
 
@@ -81,24 +83,26 @@ def compare_mc():
         print('...data got')
         for evt, pmap in pmaps.items():
 
-            if len(pmap.s2s) == 1:
+            if len(pmap.s2s) == 1 and len(pmap.s1s) == 1:
                 try:
                     da_hit[da_hit.event==evt].X.values[0]
                     hx = da_hit[da_hit.event==evt].X.values
                     hy = da_hit[da_hit.event==evt].Y.values
                     hz = da_hit[da_hit.event==evt].Z.values
+                    hq = da_hit[da_hit.event==evt].Q.values
                     #for s2 in pmap.s2s:
                     s2 = pmap.s2s[0]
                     rs2 = pmf.rebin_peak(s2, 1)
+                    p_z = (rs2.times - pmap.s1s[0].time_at_max_energy)/1000
                     #print('Check: ', hz.shape[0], len(rs2.times))
-                    if hz.shape[0] == len(rs2.times):
-                        new_row = [s2.pmts.waveform(x).sum() for x in range(12)]
-                        cn_row  = [life_correction(hx, hy, hz, rs2.pmts.waveform(x)) for x in range(12)]
-                        new_row = np.column_stack((new_row, cn_row)).flatten()
-                        #new_row.insert(0, s2.total_energy)
-                        new_row = np.insert(new_row, 0, s2.total_energy)
+                    #if hz.shape[0] == len(rs2.times):
+                    new_row = [s2.pmts.waveform(x).sum() for x in range(12)]
+                    cn_row  = [life_correction(hx, hy, hz, hq, p_z, rs2.pmts.waveform(x)) for x in range(12)]
+                    new_row = np.column_stack((new_row, cn_row)).flatten()
+                    #new_row.insert(0, s2.total_energy)
+                    new_row = np.insert(new_row, 0, s2.total_energy)
                     
-                        da_sums.loc[len(da_sums)] = list(new_row)
+                    da_sums.loc[len(da_sums)] = list(new_row)
                 except IndexError:
                     continue
 
@@ -137,16 +141,19 @@ def compare_mc():
     trg2 = mc_sums['p2'] * pfit[1] * pfit[2] > 7836
     fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(20,6))
     #mc_sums['new_sum'] = mc_sums.drop('wf_sum', axis=1).sum(axis=1)
-    for cname, ax, p in zip(dfcols[1::2], axes.flatten(), pfit):
+    mc_sums['new_sum'] = mc_sums[dfcols[1::2]].multiply(pfit).sum(axis=1)
+    mc_sums['new_csum'] = mc_sums[dfcols[2::2]].multiply(pfit).sum(axis=1)
+    da_sums['csum'] = da_sums[dfcols[2::2]].sum(axis=1)
+    for cname, ax, p in zip(dfcols[2::2], axes.flatten(), pfit):
         ax.set_title('PMT '+cname[2:]+' pe distribution')
         ax.set_xlabel('Photoelectrons')
         ax.set_ylabel('AU')
         mc_sums[trg0 & trg2][cname].multiply(p).plot.hist(ax=ax,
                                               bins=np.linspace(0, 120000, 100),
                                               label='MC', density=True,
-                                              histtype='step', log=True)
+                                              histtype='step')
         da_sums[cname].plot.hist(ax=ax, bins=np.linspace(0, 120000, 100),
-                                 label='data', density=True, histtype='step', log=True)
+                                 label='data', density=True, histtype='step')
         ## if 'p1' == cname:
         ##     mc_vals = mc_sums[trg0 & trg2][cname].values
         ##     da_vals = da_sums[cname].values
@@ -165,6 +172,26 @@ def compare_mc():
     fig.show()
     plt.show()
 
+    mc_sums[trg0 & trg2].new_sum.plot.hist(bins=np.linspace(0, 1.2e6, 100),
+                                          label='MC',
+                                          density=True, histtype='step')
+    da_sums.wf_sum.plot.hist(bins=np.linspace(0, 1.2e6, 100), label='data',
+                             density=True, histtype='step')
+    plt.title('PMT sum')
+    plt.xlabel('Summed PMT charge (pe)')
+    plt.yscale('log')
+    plt.show()
+
+    mc_sums[trg0 & trg2].new_csum.plot.hist(bins=np.linspace(0, 1.2e6, 100),
+                                          label='MC',
+                                          density=True, histtype='step')
+    da_sums.csum.plot.hist(bins=np.linspace(0, 1.2e6, 100), label='data',
+                             density=True, histtype='step')
+    plt.title('PMT sum')
+    plt.xlabel('Summed PMT charge (pe)')
+    plt.yscale('log')
+    plt.show()
+
     ## mc_sums.new_sum.plot.hist(bins=100, label='MC',
     ##                           density=True, histtype='step')
     ## da_sums.wf_sum.plot.hist(bins=100, label='data',
@@ -176,14 +203,19 @@ def compare_mc():
         
 
 
-def life_correction(x, y, z, pmt_zspec):
+def life_correction(x, y, z, si_q, pmap_z, pmt_zspec):
     """
     take in the spectrum (pmap) for a PMT
     and apply the xy binned lifetime corrections.
     """
-
-    corrected_val = np.sum(pmt_zspec * lt_corr(z, x, y).value)
-    return corrected_val
+    if len(z) != len(pmt_zspec):
+        equal_vals = [np.isclose(z_p, z) for z_p in pmap_z]
+        #if not np.any(equal_vals): print(pmap_z, z)
+        charge_split = np.array([si_q[eq]/np.sum(si_q[eq]) * pmt_zspec[i] for i, eq in enumerate(equal_vals)]).flatten()
+        charge_split = np.concatenate(charge_split)
+        return np.sum(charge_split * lt_corr(z, x, y).value)
+    
+    return np.sum(pmt_zspec * lt_corr(z, x, y).value)
 
 
 def simple_pmt1_fit(mc_vals):

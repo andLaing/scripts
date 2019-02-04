@@ -2,19 +2,23 @@ import numpy as np
 import tables as tb
 import matplotlib.pyplot as plt
 
+
 import invisible_cities.core.fit_functions as fitf
+from   invisible_cities.core.core_functions import weighted_mean_and_std
 import invisible_cities.database.load_db   as DB
 
 
-def weighted_av_std(values, weights):
+## def weighted_av_std(values, weights):
 
-    avg = np.average(values, weights=weights)
+##     avg = np.average(values, weights=weights)
 
-    var = np.average((values-avg)**2, weights=weights)
-    # renormalize
-    var = weights.sum() * var / (weights.sum()-1)
+##     var = np.average((values-avg)**2, weights=weights)
+##     # renormalize
+##     var = weights.sum() * var / (weights.sum()-1)
 
-    return avg, np.sqrt(var)
+##     return avg, np.sqrt(var)
+
+def check_all_sipms_present(wf_file):
 
 
 def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
@@ -52,8 +56,8 @@ def sipm_connectivity_check(elec_name, dark_name, RUN_NO):
                 ## database access.
                 chan_no = sensors[ich]
 
-                avE, rmsE = weighted_av_std(binsE, espec)
-                avD, rmsD = weighted_av_std(binsD, dspec)
+                avE, rmsE = weighted_mean_and_std(binsE, espec, unbiased=True)
+                avD, rmsD = weighted_mean_and_std(binsD, dspec, unbiased=True)
 
                 mean_low   = avE + min_incr >= avD
                 rms_low    = rmsE + min_incr >= rmsD

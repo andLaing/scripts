@@ -43,7 +43,7 @@ def main():
     badCh = [ id for id, act in zip(sipmDats.SensorID,sipmDats.Active) if act==0]
     for i, (ped, mau, pdf) in enumerate(zip(sipmHist, mauHist, noise_sampler.probs)):
         sensor_id = sipmDats.SensorID[i]
-        if not sensor_id in badCh:
+        if not sensor_id in badCh and sensor_id >= 11000:
             print('Sipm ', sensor_id)
             #print(pdf)
             mean1, rms1 = wav(binsS, ped)
